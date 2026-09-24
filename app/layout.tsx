@@ -39,9 +39,16 @@ export const viewport: Viewport = {
   colorScheme: 'light',
 }
 
+// Fija el estado del movimiento antes de pintar (evita que las animaciones arranquen
+// si el visitante ya las había pausado o si su sistema pide menos movimiento).
+const MOTION_SCRIPT = `try{var m=localStorage.getItem('kovex-motion');if(m==='off'||(!m&&matchMedia('(prefers-reduced-motion: reduce)').matches)){document.documentElement.dataset.motion='off'}}catch(e){}`
+
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="es-CO" className={`${montserrat.variable} ${michroma.variable}`}>
+    <html lang="es-CO" className={`${montserrat.variable} ${michroma.variable}`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: MOTION_SCRIPT }} />
+      </head>
       <body className="min-h-dvh bg-background font-sans text-foreground antialiased">
         {children}
         <Toaster position="top-center" richColors theme="light" />

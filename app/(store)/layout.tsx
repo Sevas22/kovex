@@ -1,3 +1,4 @@
+import { MotionToggle } from '@/components/store/motion-toggle'
 import { SiteFooter } from '@/components/store/site-footer'
 import { SiteHeader } from '@/components/store/site-header'
 import { CartProvider } from '@/lib/cart'
@@ -18,6 +19,7 @@ export default async function StoreLayout({ children }: { children: React.ReactN
         <SiteHeader departments={links} store={store} />
         <main className="flex-1">{children}</main>
         <SiteFooter departments={links} store={store} />
+        <MotionToggle />
       </div>
     </CartProvider>
   )

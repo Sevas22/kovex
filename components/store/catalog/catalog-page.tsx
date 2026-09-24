@@ -127,7 +127,7 @@ export async function CatalogPage({ category, searchParams }: { category?: strin
               </EmptyContent>
             </Empty>
           ) : (
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
+            <div className="reveal-children grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
               {result.items.map((p, i) => (
                 <ProductCard key={p.id} product={p} priority={i < 4} />
               ))}

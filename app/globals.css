@@ -371,3 +371,150 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Banners tipográficos y secciones con scroll fijo (scrollytelling)
+   La tipografía se ajusta al ancho disponible con unidades de contenedor, así
+   que una línea larga nunca se desborda ni se parte.
+   --------------------------------------------------------------------------- */
+
+@layer utilities {
+  .statement-box {
+    container-type: inline-size;
+  }
+  .statement-line {
+    font-family: var(--font-display);
+    text-transform: uppercase;
+    white-space: nowrap;
+    line-height: 1.02;
+    /* --ch es el ancho de la frase en «em» (lo calcula lib/display-width.ts). */
+    font-size: min(var(--statement-max, 4.5rem), calc(100cqw / var(--ch, 16)));
+  }
+  /* Ventana que recorta la línea mientras sube; el padding deja ver las tildes. */
+  .line-mask {
+    display: block;
+    overflow: hidden;
+    padding-top: 0.18em;
+    margin-top: -0.18em;
+  }
+  .marquee-rev .marquee-track {
+    animation-direction: reverse;
+  }
+  /* Marco de la sección cine: por defecto ocupa toda la pantalla (sin animación). */
+  .cinema-frame {
+    inset: 0;
+    border-radius: 0;
+  }
+  .progress-track {
+    overflow: hidden;
+  }
+  .progress-fill {
+    transform-origin: left;
+  }
+}
+
+@keyframes kovex-line-in {
+  from {
+    transform: translateY(105%);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@keyframes kovex-progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes kovex-cinema {
+  from {
+    inset: 2.5rem max(6vw, 1rem);
+    border-radius: 6px;
+  }
+  to {
+    inset: 0;
+    border-radius: 0;
+  }
+}
+
+@keyframes kovex-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    /* Cada línea del banner sube desde su propia ventana, una detrás de otra. */
+    .lines-in > * > * {
+      animation: kovex-line-in linear both;
+      animation-timeline: view();
+      animation-range: entry 15% cover 32%;
+    }
+    .lines-in > *:nth-child(2) > * {
+      animation-range: entry 22% cover 40%;
+    }
+    .lines-in > *:nth-child(3) > * {
+      animation-range: entry 29% cover 48%;
+    }
+    .lines-in > *:nth-child(4) > * {
+      animation-range: entry 36% cover 56%;
+    }
+
+    /* La línea fina bajo el banner se traza al entrar. */
+    .rule-in {
+      transform-origin: left;
+      animation: kovex-draw-line linear both;
+      animation-timeline: view();
+      animation-range: entry 30% cover 45%;
+    }
+
+    /* Cinta que avanza con el scroll en lugar de con el tiempo. */
+    .marquee-on-scroll .marquee-track {
+      animation: kovex-marquee linear both;
+      animation-timeline: view();
+      animation-range: cover 0% cover 100%;
+    }
+
+    /* Secciones altas con contenido fijo: la sección marca el recorrido y sus
+       descendientes se animan dentro de él. */
+    .scrolly {
+      view-timeline-name: --scrolly;
+      view-timeline-axis: block;
+    }
+    .scrolly-frame {
+      animation: kovex-cinema linear both;
+      animation-timeline: --scrolly;
+      animation-range: contain 0% contain 30%;
+    }
+    .scrolly-progress {
+      animation: kovex-progress linear both;
+      animation-timeline: --scrolly;
+      animation-range: contain 0% contain 100%;
+    }
+    .scrolly-fade {
+      animation: kovex-fade-in linear both;
+      animation-timeline: --scrolly;
+      animation-range: contain 2% contain 14%;
+    }
+  }
+}
+
+/* Interruptor “Movimiento”: deja todo quieto y en su estado final. */
+:root[data-motion='off'] *,
+:root[data-motion='off'] *::before,
+:root[data-motion='off'] *::after {
+  animation-timeline: auto !important;
+  animation-duration: 0.01ms !important;
+  animation-delay: 0ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}

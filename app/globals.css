@@ -477,13 +477,6 @@
       animation-range: entry 30% cover 45%;
     }
 
-    /* Cinta que avanza con el scroll en lugar de con el tiempo. */
-    .marquee-on-scroll .marquee-track {
-      animation: kovex-marquee linear both;
-      animation-timeline: view();
-      animation-range: cover 0% cover 100%;
-    }
-
     /* Secciones altas con contenido fijo: la sección marca el recorrido y sus
        descendientes se animan dentro de él. */
     .scrolly {

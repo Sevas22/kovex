@@ -27,6 +27,21 @@ const BANNER_ITEMS = [
   { icon: MessageCircleIcon, title: 'Cierre por WhatsApp', text: 'Un asesor confirma disponibilidad, pago y entrega contigo.' },
 ]
 
+const PROMISE_COLUMNS = [
+  {
+    title: 'Un solo pedido',
+    text: 'Ferretería, agro, hogar, maquinaria, tecnología y electro en la misma compra, con un solo interlocutor.',
+  },
+  {
+    title: 'Precio por volumen',
+    text: 'Mientras más unidades, mejor queda tu costo. El asesor te confirma la escala que te corresponde.',
+  },
+  {
+    title: 'Sin frenar tu operación',
+    text: 'Disponibilidad real, unidades separadas al confirmar y despachos a toda Colombia.',
+  },
+]
+
 const PROMISE_WORDS = [
   'Precio mayorista',
   'Disponibilidad real',
@@ -111,6 +126,9 @@ export default async function HomePage() {
         lines={['Compra más.', 'Paga mejor.', 'Haz crecer tu negocio.']}
         accentFrom={2}
         max="5.5rem"
+        pattern
+        watermark
+        columns={PROMISE_COLUMNS}
       />
 
       <HowToBuy whatsappUrl={quoteUrl} />

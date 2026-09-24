@@ -1,8 +1,10 @@
 import type { LucideIcon } from 'lucide-react'
+import { Logo } from '@/components/brand/logo'
 import { displayWidth } from '@/lib/display-width'
 import { cn } from '@/lib/utils'
 
 export type StatementItem = { icon: LucideIcon; title: string; text: string }
+export type StatementColumn = { title: string; text: string }
 
 /**
  * Banner tipográfico: frases cortas a gran tamaño que suben línea por línea con el
@@ -14,6 +16,9 @@ export function StatementBanner({
   lines,
   accentFrom,
   items,
+  columns,
+  pattern,
+  watermark,
   tone = 'light',
   max = '4.5rem',
   className,
@@ -23,6 +28,12 @@ export function StatementBanner({
   /** Desde esta línea (índice) el texto va en el color de acento. */
   accentFrom?: number
   items?: StatementItem[]
+  /** Columnas de apoyo bajo la frase, separadas por filetes. */
+  columns?: StatementColumn[]
+  /** Trama diagonal de fondo. */
+  pattern?: boolean
+  /** Monograma gigante, muy tenue, detrás de la frase. */
+  watermark?: boolean
   tone?: 'light' | 'dark'
   /** Tamaño máximo de línea. */
   max?: string
@@ -37,7 +48,20 @@ export function StatementBanner({
         className,
       )}
     >
-      <div className="statement-box mx-auto max-w-7xl px-4 py-20 text-center md:py-28">
+      {pattern ? (
+        <div
+          aria-hidden="true"
+          className={cn('pointer-events-none absolute inset-0', dark ? 'diag-lines' : 'diag-lines-dark')}
+        />
+      ) : null}
+      {watermark ? (
+        <Logo
+          variant={dark ? 'markNegative' : 'mark'}
+          className="pointer-events-none absolute top-1/2 -right-12 hidden h-[115%] w-auto -translate-y-1/2 opacity-[0.05] sm:block md:right-4"
+        />
+      ) : null}
+
+      <div className="statement-box relative mx-auto max-w-7xl px-4 py-20 text-center md:py-28">
         {eyebrow ? (
           <p
             className={cn(
@@ -66,6 +90,36 @@ export function StatementBanner({
             </span>
           ))}
         </h2>
+
+        {columns?.length ? (
+          <div className="mt-14">
+            <span aria-hidden="true" className={cn('rule-in block h-px', dark ? 'bg-white/25' : 'bg-brand-navy/15')} />
+            <dl
+              className={cn(
+                'reveal-children mt-10 grid gap-8 text-left sm:grid-cols-3 sm:gap-0 sm:divide-x',
+                dark ? 'sm:divide-white/15' : 'sm:divide-brand-navy/10',
+              )}
+            >
+              {columns.map((col) => (
+                <div key={col.title} className="sm:px-8 sm:first:pl-0 sm:last:pr-0">
+                  <dt className="flex items-start gap-4 font-display text-sm uppercase">
+                    <span
+                      aria-hidden="true"
+                      className={cn(
+                        'mt-[0.25em] h-3 w-5 shrink-0 origin-bottom -skew-x-[45deg]',
+                        dark ? 'bg-brand-cyan' : 'bg-brand-blue',
+                      )}
+                    />
+                    {col.title}
+                  </dt>
+                  <dd className={cn('mt-3 text-sm leading-relaxed', dark ? 'text-white/70' : 'text-muted-foreground')}>
+                    {col.text}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        ) : null}
 
         {items?.length ? (
           <>

@@ -11,7 +11,7 @@ export function Manifesto() {
         className="pointer-events-none absolute top-1/2 -right-16 h-[115%] -translate-y-1/2 opacity-[0.08] md:right-8"
       />
       <div className="relative mx-auto max-w-7xl px-4 py-16 md:py-24">
-        <div className="max-w-3xl">
+        <div className="reveal-children max-w-3xl">
           <CompanyHeading tone="light">Nuestro manifiesto</CompanyHeading>
           <div className="mt-8 flex flex-col gap-5 text-lg leading-relaxed text-white/80 md:text-xl">
             {COMPANY.manifesto.map((paragraph) => (

@@ -1,17 +1,20 @@
 import { ArrowRightIcon } from 'lucide-react'
 import Link from 'next/link'
+import { cn } from '@/lib/utils'
 
 export function SectionHeading({
   title,
   description,
   link,
+  className,
 }: {
   title: string
   description?: string
   link?: { href: string; label: string }
+  className?: string
 }) {
   return (
-    <div className="mb-6 flex items-end justify-between gap-4">
+    <div className={cn('mb-6 flex items-end justify-between gap-4', className)}>
       <div>
         <h2 className="font-display text-lg text-brand-navy uppercase md:text-xl">{title}</h2>
         {description ? <p className="mt-1.5 text-sm text-muted-foreground">{description}</p> : null}

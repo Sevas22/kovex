@@ -59,8 +59,9 @@ export default async function HomePage() {
             title="Productos destacados"
             description="Lo que más piden nuestros clientes mayoristas."
             link={{ href: '/catalogo', label: 'Ver catálogo' }}
+            className="reveal"
           />
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
+          <div className="reveal-children grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
             {featured.map((p) => (
               <ProductCard key={p.id} product={p} />
             ))}

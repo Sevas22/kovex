@@ -8,7 +8,7 @@ export function Faq({ whatsappUrl }: { whatsappUrl: string }) {
   return (
     <section id="preguntas" className="scroll-mt-32 bg-white">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-16 md:py-24 lg:grid-cols-[1fr_1.7fr] lg:gap-16">
-        <div className="flex flex-col items-start gap-5">
+        <div className="reveal-children flex flex-col items-start gap-5">
           <CompanyHeading>Preguntas frecuentes</CompanyHeading>
           <p className="max-w-sm leading-relaxed text-muted-foreground">
             Lo que más nos preguntan antes de la primera compra. Si tu duda no está aquí, escríbenos.
@@ -23,7 +23,7 @@ export function Faq({ whatsappUrl }: { whatsappUrl: string }) {
             Hablar con un asesor
           </Button>
         </div>
-        <Accordion className="border-t">
+        <Accordion className="reveal border-t">
           {COMPANY.faq.map((item) => (
             <AccordionItem key={item.q} value={item.q} className="border-b">
               <AccordionTrigger className="py-4 text-base font-semibold text-brand-navy hover:no-underline">

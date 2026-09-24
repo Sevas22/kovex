@@ -18,7 +18,7 @@ export function Audiences() {
   return (
     <section className="bg-white">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-16 md:py-24 lg:grid-cols-[1fr_2fr] lg:gap-14">
-        <div className="flex flex-col gap-6">
+        <div className="reveal-children flex flex-col gap-6">
           <div>
             <CompanyHeading>Para quién trabajamos</CompanyHeading>
             <p className="mt-4 max-w-sm leading-relaxed text-muted-foreground">
@@ -34,7 +34,7 @@ export function Audiences() {
           </div>
         </div>
 
-        <ul className="grid gap-4 sm:grid-cols-3">
+        <ul className="reveal-children grid gap-4 sm:grid-cols-3">
           {COMPANY.audiences.map((audience, i) => {
             const Icon = AUDIENCE_ICONS[i]
             return (

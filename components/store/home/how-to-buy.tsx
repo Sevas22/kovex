@@ -24,7 +24,7 @@ export function HowToBuy() {
           <p className="mt-3 max-w-lg text-white/70">
             Sin registros ni pasarelas: tú eliges los productos y un asesor cierra la compra contigo.
           </p>
-          <ol className="mt-10 flex flex-col gap-8">
+          <ol className="reveal-children mt-10 flex flex-col gap-8">
             {STEPS.map((step, i) => (
               <li key={step.title} className="grid grid-cols-[3.5rem_1fr] gap-4">
                 <span className="font-display text-3xl leading-none text-brand-cyan tabular" aria-hidden="true">

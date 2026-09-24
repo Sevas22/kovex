@@ -6,19 +6,26 @@ export function CtaBand({ whatsappUrl, brands }: { whatsappUrl: string; brands: 
   return (
     <section className="mx-auto max-w-7xl px-4 pt-4 pb-16">
       {brands.length ? (
-        <div className="mb-12">
+        <div className="reveal mb-12">
           <h2 className="mb-4 text-sm font-semibold text-muted-foreground">Marcas que distribuimos</h2>
-          <ul className="flex flex-wrap gap-2">
-            {brands.map((b) => (
-              <li key={b} className="rounded-sm border bg-white px-4 py-2 text-sm font-semibold text-brand-navy">
-                {b}
-              </li>
-            ))}
-          </ul>
+          {/* Cinta continua: se detiene al pasar el mouse o con el teclado */}
+          <div className="marquee overflow-hidden">
+            <ul className="marquee-track gap-2">
+              {[...brands, ...brands].map((b, i) => (
+                <li
+                  key={`${b}-${i}`}
+                  aria-hidden={i >= brands.length}
+                  className="rounded-sm border bg-white px-4 py-2 text-sm font-semibold whitespace-nowrap text-brand-navy"
+                >
+                  {b}
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       ) : null}
 
-      <div className="chamfer chamfer-lg relative overflow-hidden rounded-md bg-brand-blue px-6 py-10 text-white md:px-12 md:py-14">
+      <div className="sheen chamfer chamfer-lg relative rounded-md bg-brand-blue px-6 py-10 text-white md:px-12 md:py-14">
         <Logo
           variant="markNegative"
           className="pointer-events-none absolute -right-6 -bottom-10 h-64 opacity-15 md:right-10 md:h-80"

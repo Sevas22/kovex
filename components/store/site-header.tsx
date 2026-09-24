@@ -16,10 +16,10 @@ export function SiteHeader({ departments, store }: { departments: CategoryLink[]
   return (
     <header className="sticky top-0 z-40 bg-background">
       <div className="border-b">
-        <div className="mx-auto flex h-16 max-w-7xl items-center gap-2 px-4 md:h-20 md:gap-6">
+        <div className="header-bar mx-auto flex h-16 max-w-7xl items-center gap-2 px-4 md:h-20 md:gap-6">
           <MobileNav departments={departments} whatsappUrl={whatsappUrl} />
           <Link href="/" aria-label="KOVEX Colombia, ir al inicio" className="shrink-0">
-            <Logo priority className="h-9 md:h-12" />
+            <Logo priority className="header-logo h-9 md:h-12" />
           </Link>
           <Suspense>
             <HeaderSearch className="hidden md:block" />

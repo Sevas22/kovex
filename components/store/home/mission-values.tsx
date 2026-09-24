@@ -8,7 +8,7 @@ export function MissionValues() {
   return (
     <section id="mision" className="scroll-mt-32 bg-brand-mist">
       <div className="mx-auto max-w-7xl px-4 py-16 md:py-24">
-        <div className="grid gap-12 md:grid-cols-2 md:gap-0 md:divide-x md:divide-border">
+        <div className="reveal-children grid gap-12 md:grid-cols-2 md:gap-0 md:divide-x md:divide-border">
           <div className="md:pr-12">
             <CompanyHeading>Misión</CompanyHeading>
             <p className="mt-5 max-w-xl text-lg leading-relaxed text-brand-navy md:text-xl">{COMPANY.mission}</p>
@@ -21,7 +21,7 @@ export function MissionValues() {
 
         <div className="mt-16 border-t border-border pt-12 md:mt-20">
           <CompanyHeading>Nuestros valores</CompanyHeading>
-          <ul className="mt-8 grid gap-10 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8">
+          <ul className="reveal-children mt-8 grid gap-10 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8">
             {COMPANY.values.map((value, i) => {
               const Icon = VALUE_ICONS[i]
               return (

@@ -9,7 +9,7 @@ export function AboutSection() {
   return (
     <section id="nosotros" className="scroll-mt-32 border-t bg-white">
       <div className="mx-auto max-w-7xl px-4 py-16 md:py-24">
-        <div className="grid gap-8 lg:grid-cols-[1fr_1.35fr] lg:gap-16">
+        <div className="reveal-children grid gap-8 lg:grid-cols-[1fr_1.35fr] lg:gap-16">
           <div>
             <CompanyHeading>Quiénes somos</CompanyHeading>
             <p className="mt-5 max-w-md text-2xl leading-snug font-semibold text-brand-navy md:text-3xl">
@@ -27,8 +27,8 @@ export function AboutSection() {
         </div>
 
         <div className="mt-16 md:mt-20">
-          <CompanyHeading as="h3">Nuestros 3 pilares</CompanyHeading>
-          <dl className="mt-6 grid gap-px overflow-hidden rounded-md border bg-border sm:grid-cols-3">
+          <CompanyHeading as="h3" className="reveal">Nuestros 3 pilares</CompanyHeading>
+          <dl className="reveal-children mt-6 grid gap-px overflow-hidden rounded-md border bg-border sm:grid-cols-3">
             {COMPANY.pillars.map((pillar, i) => {
               const Icon = PILLAR_ICONS[i]
               return (

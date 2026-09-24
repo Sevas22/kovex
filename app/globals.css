@@ -145,6 +145,224 @@
   }
 }
 
+/* ---------------------------------------------------------------------------
+   Movimiento
+   Las animaciones de scroll usan animation-timeline (sin JavaScript). Donde el
+   navegador no las soporta, el contenido se ve fijo y completo: nunca se oculta
+   algo que no se pueda animar.
+   --------------------------------------------------------------------------- */
+
+@keyframes kovex-rise {
+  from {
+    opacity: 0;
+    transform: translateY(1.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Barrido en diagonal a 45°, como el corte del monograma. */
+@keyframes kovex-wipe {
+  from {
+    clip-path: polygon(0 0, 0 0, -60% 100%, -60% 100%);
+  }
+  to {
+    clip-path: polygon(0 0, 160% 0, 160% 100%, 0 100%);
+  }
+}
+
+@keyframes kovex-zoom-out {
+  from {
+    transform: scale(1.12);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+@keyframes kovex-underline {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes kovex-parallax {
+  to {
+    transform: translateY(5%);
+  }
+}
+
+@keyframes kovex-draw-line {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes kovex-pop {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.2);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes kovex-marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes kovex-sheen {
+  0%,
+  55% {
+    transform: translateX(-120%) skewX(-20deg);
+  }
+  100% {
+    transform: translateX(320%) skewX(-20deg);
+  }
+}
+
+@keyframes kovex-header-compact {
+  to {
+    height: 3.75rem;
+  }
+}
+
+@keyframes kovex-logo-compact {
+  to {
+    height: 2.25rem;
+  }
+}
+
+@layer utilities {
+  /* Entrada al cargar la página (hero). */
+  .anim-in {
+    animation: kovex-rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .anim-delay-1 {
+    animation-delay: 0.08s;
+  }
+  .anim-delay-2 {
+    animation-delay: 0.16s;
+  }
+  .anim-delay-3 {
+    animation-delay: 0.24s;
+  }
+  .anim-wipe {
+    animation: kovex-wipe 1s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .anim-zoom-out {
+    animation: kovex-zoom-out 1.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .anim-underline {
+    transform-origin: left;
+    animation: kovex-underline 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.5s both;
+  }
+  .sheen {
+    position: relative;
+    overflow: hidden;
+  }
+  .sheen::after {
+    content: '';
+    position: absolute;
+    inset-block: -30%;
+    width: 35%;
+    background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.16), transparent);
+    pointer-events: none;
+  }
+  .marquee {
+    mask-image: linear-gradient(to right, transparent, black 12%, black 88%, transparent);
+  }
+  .marquee-track {
+    display: flex;
+    width: max-content;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .sheen::after {
+    animation: kovex-sheen 7s ease-in-out infinite;
+  }
+  .marquee-track {
+    animation: kovex-marquee 42s linear infinite;
+  }
+  .marquee:hover .marquee-track,
+  .marquee:focus-within .marquee-track {
+    animation-play-state: paused;
+  }
+
+  @supports (animation-timeline: view()) {
+    /* Aparición al entrar en pantalla. */
+    .reveal,
+    .reveal-children > * {
+      animation: kovex-rise linear both;
+      animation-timeline: view();
+      animation-range: entry 8% cover 26%;
+    }
+    /* Escalonado: con línea de tiempo de scroll no aplica animation-delay,
+       así que cada hijo entra un poco más tarde dentro del recorrido. */
+    .reveal-children > *:nth-child(2) {
+      animation-range: entry 12% cover 30%;
+    }
+    .reveal-children > *:nth-child(3) {
+      animation-range: entry 16% cover 34%;
+    }
+    .reveal-children > *:nth-child(4) {
+      animation-range: entry 20% cover 38%;
+    }
+    .reveal-children > *:nth-child(5) {
+      animation-range: entry 24% cover 42%;
+    }
+    .reveal-children > *:nth-child(6) {
+      animation-range: entry 28% cover 46%;
+    }
+
+    /* Trazos que se dibujan y puntos que aparecen (monograma). */
+    .draw-on-view {
+      animation: kovex-draw-line linear both;
+      animation-timeline: view();
+      animation-range: entry 25% cover 55%;
+    }
+    .pop-on-view {
+      animation: kovex-pop linear both;
+      animation-timeline: view();
+      animation-range: entry 30% cover 55%;
+    }
+
+    /* La foto del hero se mueve un poco más lento que la página. */
+    .parallax {
+      animation: kovex-parallax linear both;
+      animation-timeline: scroll();
+      animation-range: 0 90vh;
+    }
+  }
+
+  @supports (animation-timeline: scroll()) {
+    /* La barra superior se compacta al bajar. */
+    .header-bar {
+      animation: kovex-header-compact linear both;
+      animation-timeline: scroll();
+      animation-range: 0 120px;
+    }
+    .header-logo {
+      animation: kovex-logo-compact linear both;
+      animation-timeline: scroll();
+      animation-range: 0 120px;
+    }
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

@@ -33,30 +33,27 @@ export function MonogramMeaning() {
           unoptimized
           className="absolute top-0 left-1/2 h-full w-auto -translate-x-1/2"
         />
-        <svg
-          viewBox={`0 0 ${CANVAS_WIDTH} 100`}
-          preserveAspectRatio="none"
-          className="pointer-events-none absolute inset-0 size-full overflow-visible"
-          aria-hidden="true"
-        >
-          {POINTS.map((p) => (
-            <line
-              key={`${p.x}-${p.y}`}
-              x1={p.x}
-              y1={p.y}
-              x2={p.side === 'left' ? LEFT_EDGE : RIGHT_EDGE}
-              y2={p.y}
-              stroke="var(--brand-blue)"
-              strokeWidth={1.25}
-              vectorEffect="non-scaling-stroke"
+        {/* Guías que se trazan desde el texto hacia el punto */}
+        {POINTS.map((p) => {
+          const from = p.side === 'left' ? LEFT_EDGE : RIGHT_EDGE
+          return (
+            <span
+              key={`line-${p.x}-${p.y}`}
+              aria-hidden="true"
+              className={cn('draw-on-view absolute h-px bg-brand-blue', p.side === 'left' ? 'origin-left' : 'origin-right')}
+              style={{
+                left: pct(Math.min(from, p.x)),
+                width: pct(Math.abs(from - p.x)),
+                top: `${p.y}%`,
+              }}
             />
-          ))}
-        </svg>
+          )
+        })}
         {POINTS.map((p, i) => (
           <span
             key={COMPANY.monogram[i].title}
             aria-hidden="true"
-            className="absolute size-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand-blue ring-4 ring-white"
+            className="pop-on-view absolute size-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand-blue ring-4 ring-white"
             style={{ left: pct(p.x), top: `${p.y}%` }}
           />
         ))}
@@ -65,14 +62,11 @@ export function MonogramMeaning() {
           return (
             <div
               key={m.title}
-              className={cn(
-                'absolute w-[22%] -translate-y-[0.7rem]',
-                p.side === 'left' ? 'text-right' : 'text-left',
-              )}
+              className={cn('reveal absolute w-[22%]', p.side === 'left' ? 'text-right' : 'text-left')}
               style={
                 p.side === 'left'
-                  ? { right: `calc(100% - ${pct(LEFT_EDGE)} + 1rem)`, top: `${p.y}%` }
-                  : { left: `calc(${pct(RIGHT_EDGE)} + 1rem)`, top: `${p.y}%` }
+                  ? { right: `calc(100% - ${pct(LEFT_EDGE)} + 1rem)`, top: `calc(${p.y}% - 0.7rem)` }
+                  : { left: `calc(${pct(RIGHT_EDGE)} + 1rem)`, top: `calc(${p.y}% - 0.7rem)` }
               }
             >
               <p className="font-display text-sm text-brand-blue uppercase">{m.title}</p>
@@ -85,7 +79,7 @@ export function MonogramMeaning() {
       {/* Móvil y tableta: monograma + lista */}
       <div className="lg:hidden">
         <Image src="/brand/monograma.png" alt="Monograma KOVEX" width={391} height={448} unoptimized className="mx-auto h-48 w-auto" />
-        <dl className="mt-8 grid gap-6 sm:grid-cols-2">
+        <dl className="reveal-children mt-8 grid gap-6 sm:grid-cols-2">
           {COMPANY.monogram.map((m) => (
             <div key={m.title} className="border-l-2 border-brand-blue pl-4">
               <dt className="font-display text-sm text-brand-blue uppercase">{m.title}</dt>

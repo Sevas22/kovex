@@ -11,13 +11,13 @@ export function ProductCard({ product, priority }: { product: ProductSummary; pr
   const out = stockLevel(product) === 'out'
 
   return (
-    <article className="flex flex-col overflow-hidden rounded-md border bg-card transition-colors hover:border-brand-blue/50">
-      <Link href={href} className="relative block aspect-square bg-white" tabIndex={-1} aria-hidden="true">
+    <article className="group flex flex-col overflow-hidden rounded-md border bg-card transition-all duration-300 hover:-translate-y-0.5 hover:border-brand-blue/50 hover:shadow-md hover:shadow-brand-navy/5">
+      <Link href={href} className="relative block aspect-square overflow-hidden bg-white" tabIndex={-1} aria-hidden="true">
         <ProductImage
           src={product.image}
           alt={product.name}
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-          className="p-5"
+          className="p-5 transition-transform duration-500 group-hover:scale-105"
           priority={priority}
         />
         {out ? (

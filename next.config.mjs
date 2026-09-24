@@ -1,10 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  typescript: {
-    ignoreBuildErrors: true,
-  },
   images: {
-    unoptimized: true,
+    // Las fotos de producto vienen del CDN de Shopify, que redimensiona gratis con ?width=.
+    loader: 'custom',
+    loaderFile: './lib/image-loader.ts',
+  },
+  async redirects() {
+    return [{ source: '/cotizacion', destination: '/pedido', permanent: true }]
   },
 }
 

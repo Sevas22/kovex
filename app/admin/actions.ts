@@ -26,6 +26,7 @@ import { syncSupplierBatch } from '@/lib/server/supplier-sync'
 import { fetchSupplierProducts, searchSupplier } from '@/lib/server/texcomercial'
 import { computePrice } from '@/lib/pricing'
 import { normalizePhone, normalizeText } from '@/lib/text'
+import type { VolumeTier } from '@/lib/volume-pricing'
 
 export type ActionResult<T = undefined> = { ok: true; message?: string; data?: T } | { ok: false; error: string }
 
@@ -124,6 +125,11 @@ export async function saveOrderNotesAction(orderId: number, notes: string) {
 const money = z.number().int().min(0).max(1_000_000_000)
 const percent = z.number().min(0, 'El margen no puede ser negativo.').max(1000, 'El margen máximo es 1000 %.')
 
+const volumeTiersSchema = z
+  .array(z.object({ minQty: z.number().int().min(2).max(100000), percent: z.number().min(0).max(90) }))
+  .max(6)
+  .nullable()
+
 const productSchema = z
   .object({
     name: z.string().trim().min(3, 'Escribe el nombre del producto.').max(200),
@@ -139,6 +145,7 @@ const productSchema = z
     markupPercent: percent.nullable(),
     fixedPrice: money.nullable(),
     compareAtPrice: money.nullable(),
+    volumeTiers: volumeTiersSchema,
     taxRate: z.number().min(0).max(100),
     trackInventory: z.boolean(),
     lowStockThreshold: z.number().int().min(0).max(100000).nullable(),
@@ -205,6 +212,20 @@ export async function savePricingSettingsAction(input: { defaultMarkupPercent: n
     const changed = await recalculatePrices()
     return { changed }
   }, 'Margen general guardado')
+}
+
+export async function saveVolumeSettingsAction(input: { volumeTiers: VolumeTier[]; minMarginPercent: number }) {
+  const parsed = z.object({ volumeTiers: volumeTiersSchema.unwrap(), minMarginPercent: percent }).parse(input)
+  return run(async () => {
+    await updateSettings(parsed)
+  }, "Escala por cantidad guardada")
+}
+
+export async function saveCategoryTiersAction(categoryId: number, tiers: VolumeTier[] | null) {
+  const value = volumeTiersSchema.parse(tiers)
+  return run(async () => {
+    await db()`update public.categories set volume_tiers = ${value == null ? null : db().json(value as never)} where id = ${id.parse(categoryId)}`
+  }, "Escala de la categoría guardada")
 }
 
 export async function saveCategoryMarkupAction(categoryId: number, markupPercent: number | null) {

@@ -4,6 +4,7 @@ import { PlusIcon, SaveIcon, Trash2Icon } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { PriceBreakdownView } from './price-breakdown'
+import { VolumeTiersField } from './volume-tiers-field'
 import { useAdminAction } from './use-action'
 import { saveProductAction, type ProductFormInput } from '@/app/admin/actions'
 import { Button } from '@/components/ui/button'
@@ -16,15 +17,16 @@ import { Spinner } from '@/components/ui/spinner'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
-import { formatPercent } from '@/lib/format'
+import { formatCOP, formatPercent } from '@/lib/format'
 import { computePrice, PRICING_MODE_LABEL, type PricingMode } from '@/lib/pricing'
 import type { AdminProductDetail } from '@/lib/server/admin-products'
 import type { CategoryOption } from '@/lib/server/admin-categories'
+import { buildPriceTiers, floorPriceFor, type VolumeTier } from '@/lib/volume-pricing'
 
 interface ProductFormProps {
   product: AdminProductDetail | null
   categories: CategoryOption[]
-  pricing: { defaultMarkupPercent: number; priceRounding: number }
+  pricing: { defaultMarkupPercent: number; priceRounding: number; volumeTiers: VolumeTier[]; minMarginPercent: number }
 }
 
 const toText = (n: number | null | undefined) => (n == null ? '' : String(n))
@@ -54,6 +56,7 @@ export function ProductForm({ product, categories, pricing }: ProductFormProps) 
   const [initialStock, setInitialStock] = useState('')
   const [isActive, setIsActive] = useState(product?.isActive ?? true)
   const [isFeatured, setIsFeatured] = useState(product?.isFeatured ?? false)
+  const [tiers, setTiers] = useState<VolumeTier[] | null>(product?.volumeTiers ?? null)
 
   const category = categories.find((c) => String(c.id) === categoryId)
   const breakdown = computePrice({
@@ -68,6 +71,17 @@ export function ProductForm({ product, categories, pricing }: ProductFormProps) 
   const inheritedHint = category?.inherited
     ? `Si lo dejas vacío usa ${formatPercent(category.inherited.percent)} de ${category.inherited.from}.`
     : `Si lo dejas vacío usa el margen general (${formatPercent(pricing.defaultMarkupPercent)}).`
+  const tiersHint = category?.inheritedTiers?.tiers.length
+    ? `Hereda la escala de ${category.inheritedTiers.from} (${category.inheritedTiers.tiers.map((t) => `${t.minQty} u. −${t.percent}%`).join(", ")}).`
+    : pricing.volumeTiers.length
+      ? `Hereda la escala general (${pricing.volumeTiers.map((t) => `${t.minQty} u. −${t.percent}%`).join(", ")}).`
+      : "No hay escala general configurada: el precio no cambia con la cantidad."
+  const previewTiers = buildPriceTiers({
+    listPrice: breakdown.price,
+    tiers: tiers ?? [],
+    floorPrice: floorPriceFor(toInt(cost), pricing.minMarginPercent),
+    rounding: pricing.priceRounding,
+  })
   const imageList = images.split('\n').map((s) => s.trim()).filter(Boolean)
 
   function submit(e: React.FormEvent) {
@@ -89,6 +103,7 @@ export function ProductForm({ product, categories, pricing }: ProductFormProps) 
       taxRate: toDecimal(taxRate) ?? 19,
       trackInventory,
       lowStockThreshold: toInt(lowStock),
+      volumeTiers: tiers,
       isActive,
       isFeatured,
     }
@@ -284,6 +299,27 @@ export function ProductForm({ product, categories, pricing }: ProductFormProps) 
 
             <div className="rounded-md bg-brand-mist p-4">
               <PriceBreakdownView breakdown={breakdown} costPrice={toInt(cost)} rounding={pricing.priceRounding} />
+            </div>
+
+            <div className="rounded-md border p-4">
+              <VolumeTiersField
+                value={tiers}
+                onChange={setTiers}
+                inheritedLabel={tiersHint}
+                description="Descuento sobre el precio de venta según las unidades de este producto. Nunca baja del costo más el margen mínimo."
+              />
+              {breakdown.price != null && tiers?.length ? (
+                <ul className="mt-4 flex flex-wrap gap-2 text-xs">
+                  {previewTiers.map((t) => (
+                    <li key={t.minQty} className="rounded-full bg-success/10 px-2.5 py-1 font-semibold text-success tabular">
+                      desde {t.minQty} u. · {formatCOP(t.unitPrice)} (−{t.percent}%)
+                    </li>
+                  ))}
+                  {previewTiers.length === 0 ? (
+                    <li className="text-muted-foreground">El margen mínimo no deja aplicar ningún descuento.</li>
+                  ) : null}
+                </ul>
+              ) : null}
             </div>
 
             <div className="grid grid-cols-2 gap-4">

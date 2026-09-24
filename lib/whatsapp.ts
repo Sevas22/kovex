@@ -8,8 +8,20 @@ export function whatsappLink(number: string, text?: string): string {
 export interface OrderMessageData {
   code: string
   kind: OrderKind
-  items: { name: string; sku: string | null; quantity: number; unit: string; unitPrice: number | null }[]
+  items: {
+    name: string
+    sku: string | null
+    quantity: number
+    unit: string
+    unitPrice: number | null
+    /** Precio por unidad antes de la escala por cantidad. */
+    listUnitPrice?: number | null
+    /** Descuento por volumen aplicado a la línea. */
+    discountPercent?: number
+  }[]
   subtotal: number
+  /** Ahorro total por escalas de cantidad. */
+  discountTotal?: number
   hasUnpricedItems: boolean
   customer: {
     name: string
@@ -28,14 +40,24 @@ export interface OrderMessageData {
 export function buildOrderMessage(d: OrderMessageData): string {
   const title = d.kind === 'order' ? `*Pedido ${d.code}*` : `*Solicitud de cotización ${d.code}*`
   const lines = d.items.map((i) => {
-    const price =
-      i.unitPrice == null ? 'precio a cotizar' : `${formatCOP(i.unitPrice * i.quantity)} (${formatCOP(i.unitPrice)} c/u)`
+    const discount = i.discountPercent ?? 0
+    const unitPrice =
+      i.unitPrice == null
+        ? 'precio a cotizar'
+        : `${formatCOP(i.unitPrice * i.quantity)} (${formatCOP(i.unitPrice)} c/u${discount > 0 ? `, −${discount}% por volumen` : ''})`
     const unit = i.unit.toLowerCase() === 'unidad' ? '' : ` (${i.unit.toLowerCase()})`
-    return `• ${i.quantity} × ${i.name}${unit}${i.sku ? ` [ref. ${i.sku}]` : ''} — ${price}`
+    return `• ${i.quantity} × ${i.name}${unit}${i.sku ? ` [ref. ${i.sku}]` : ''} — ${unitPrice}`
   })
 
   const totals: string[] = []
-  if (d.subtotal > 0) totals.push(`*Subtotal:* ${formatCOP(d.subtotal)} (IVA incluido)`)
+  const discountTotal = d.discountTotal ?? 0
+  if (discountTotal > 0) {
+    totals.push(`Precio de lista: ${formatCOP(d.subtotal + discountTotal)}`)
+    totals.push(`Descuento por volumen: −${formatCOP(discountTotal)}`)
+  }
+  if (d.subtotal > 0) {
+    totals.push(`*${discountTotal > 0 ? 'Total estimado' : 'Subtotal'}:* ${formatCOP(d.subtotal)} (IVA incluido)`)
+  }
   if (d.hasUnpricedItems) totals.push('Hay productos por cotizar: espero su precio.')
 
   const c = d.customer

@@ -13,7 +13,7 @@ import { formatCOP, plural } from '@/lib/format'
 
 export function CartSheet() {
   const { items, isOpen, setOpen, setQuantity, remove } = useCart()
-  const { subtotal, unpricedCount } = cartTotals(items)
+  const { subtotal, discount, unpricedCount, lines } = cartTotals(items)
 
   return (
     <Sheet open={isOpen} onOpenChange={setOpen}>
@@ -61,7 +61,9 @@ export function CartSheet() {
                       label={`Cantidad de ${product.name}`}
                     />
                     <span className="text-sm font-semibold tabular">
-                      {product.price == null ? 'A cotizar' : formatCOP(product.price * quantity)}
+                      {product.price == null
+                        ? 'A cotizar'
+                        : formatCOP(lines.get(product.id)?.lineTotal ?? product.price * quantity)}
                     </span>
                   </div>
                 </div>
@@ -80,8 +82,14 @@ export function CartSheet() {
 
         {items.length ? (
           <SheetFooter className="gap-3 border-t bg-brand-mist">
+            {discount > 0 ? (
+              <div className="flex items-baseline justify-between text-sm font-semibold text-success">
+                <span>Descuento por volumen</span>
+                <span className="tabular">−{formatCOP(discount)}</span>
+              </div>
+            ) : null}
             <div className="flex items-baseline justify-between">
-              <span className="text-sm text-muted-foreground">Subtotal</span>
+              <span className="text-sm text-muted-foreground">{discount > 0 ? 'Estimado' : 'Subtotal'}</span>
               <span className="text-xl font-bold tabular">{formatCOP(subtotal)}</span>
             </div>
             {unpricedCount ? (

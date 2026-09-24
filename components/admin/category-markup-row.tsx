@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { CategoryTiersCell } from './category-tiers-cell'
 import { useAdminAction } from './use-action'
 import { saveCategoryMarkupAction } from '@/app/admin/actions'
 import { Button } from '@/components/ui/button'
@@ -8,9 +9,18 @@ import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupText } from '@/
 import { TableCell, TableRow } from '@/components/ui/table'
 import { formatPercent } from '@/lib/format'
 import type { CategoryMarkupRow } from '@/lib/server/admin-categories'
+import type { VolumeTier } from '@/lib/volume-pricing'
 import { cn } from '@/lib/utils'
 
-export function CategoryMarkupRowView({ row, defaultMarkup }: { row: CategoryMarkupRow; defaultMarkup: number }) {
+export function CategoryMarkupRowView({
+  row,
+  defaultMarkup,
+  generalTiers,
+}: {
+  row: CategoryMarkupRow
+  defaultMarkup: number
+  generalTiers: VolumeTier[]
+}) {
   const initial = row.markupPercent == null ? '' : String(row.markupPercent)
   const [value, setValue] = useState(initial)
   const { pending, execute } = useAdminAction()
@@ -44,6 +54,9 @@ export function CategoryMarkupRowView({ row, defaultMarkup }: { row: CategoryMar
       <TableCell className="text-sm">
         <span className="font-semibold tabular">{formatPercent(effective)}</span>
         {value === '' ? <span className="block text-xs text-muted-foreground">hereda {inheritedLabel}</span> : null}
+      </TableCell>
+      <TableCell>
+        <CategoryTiersCell row={row} generalTiers={generalTiers} />
       </TableCell>
       <TableCell className="text-right">
         <Button

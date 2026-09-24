@@ -1,11 +1,12 @@
 import 'server-only'
 import { cache } from 'react'
 import { db, type Sql, type Tx } from './db'
-import type { Category, CategoryLink } from '@/lib/types'
+import { parseTiers } from '@/lib/volume-pricing'
+import type { Category, CategoryLink, VolumeTier } from '@/lib/types'
 
 export async function loadCategories(sql: Sql | Tx = db()): Promise<Category[]> {
   return sql<Category[]>`
-    select id, parent_id, slug, name, description, icon, markup_percent, sort_order, is_active
+    select id, parent_id, slug, name, description, icon, markup_percent, volume_tiers, sort_order, is_active
     from public.categories
     order by sort_order, name
   `
@@ -24,6 +25,8 @@ export interface CategoryIndex {
   subtreeIds(id: number): number[]
   /** % de margen de la categoría o del ancestro más cercano que lo defina. */
   inheritedMarkup(id: number | null): { percent: number; from: Category } | null
+  /** Escala por cantidad de la categoría o del ancestro más cercano que la defina. */
+  inheritedTiers(id: number | null): { tiers: VolumeTier[]; from: Category } | null
 }
 
 export function buildCategoryIndex(categories: Category[]): CategoryIndex {
@@ -57,6 +60,14 @@ export function buildCategoryIndex(categories: Category[]): CategoryIndex {
     return ids
   }
 
+  function inheritedTiers(id: number | null) {
+    for (const c of pathOf(id).reverse()) {
+      const tiers = parseTiers(c.volumeTiers)
+      if (tiers) return { tiers, from: c }
+    }
+    return null
+  }
+
   function inheritedMarkup(id: number | null) {
     for (const c of pathOf(id).reverse()) {
       if (c.markupPercent != null) return { percent: c.markupPercent, from: c }
@@ -72,6 +83,7 @@ export function buildCategoryIndex(categories: Category[]): CategoryIndex {
     pathOf,
     subtreeIds,
     inheritedMarkup,
+    inheritedTiers,
   }
 }
 

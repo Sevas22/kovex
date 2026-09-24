@@ -9,6 +9,7 @@ import { Price } from '@/components/store/price'
 import { BuyBox } from '@/components/store/product/buy-box'
 import { Gallery } from '@/components/store/product/gallery'
 import { ProductCard } from '@/components/store/product-card'
+import { PriceTiers } from '@/components/store/product/price-tiers'
 import { StockStatus } from '@/components/store/stock-status'
 import {
   Breadcrumb,
@@ -122,6 +123,8 @@ export default async function ProductPage({ params }: Props) {
             <StockStatus product={product} className="mt-4 text-sm" />
           </div>
 
+          <PriceTiers product={product} />
+
           <BuyBox
             product={{
               id: product.id,
@@ -136,6 +139,7 @@ export default async function ProductPage({ params }: Props) {
               available: product.available,
               lowStockThreshold: product.lowStockThreshold,
               isFeatured: product.isFeatured,
+              priceTiers: product.priceTiers,
             }}
             whatsappUrl={askUrl}
           />

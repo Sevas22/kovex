@@ -19,7 +19,12 @@ export default async function NewProductPage() {
       <ProductForm
         product={null}
         categories={categories}
-        pricing={{ defaultMarkupPercent: settings.defaultMarkupPercent, priceRounding: settings.priceRounding }}
+        pricing={{
+          defaultMarkupPercent: settings.defaultMarkupPercent,
+          priceRounding: settings.priceRounding,
+          volumeTiers: settings.volumeTiers,
+          minMarginPercent: settings.minMarginPercent,
+        }}
       />
     </>
   )

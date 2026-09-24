@@ -18,7 +18,7 @@ import { Spinner } from '@/components/ui/spinner'
 import { Textarea } from '@/components/ui/textarea'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { cartTotals, useCart } from '@/lib/cart'
-import { formatCOP, plural } from '@/lib/format'
+import { formatCOP, plural, pluralOf } from '@/lib/format'
 import type { OrderKind } from '@/lib/types'
 
 type Customer = CheckoutInput['customer']
@@ -33,7 +33,7 @@ export function CheckoutView() {
   const [formError, setFormError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
 
-  const { subtotal, unpricedCount, shortages } = cartTotals(items)
+  const { listSubtotal, subtotal, discount, unpricedCount, shortages, lines } = cartTotals(items)
   const orderBlocked = unpricedCount > 0 || shortages.length > 0
   const kind: OrderKind = orderBlocked ? 'quote' : chosenKind
 
@@ -114,6 +114,7 @@ export function CheckoutView() {
           <ul>
             {items.map(({ product, quantity }) => {
               const short = product.available != null && quantity > product.available
+              const line = lines.get(product.id)
               return (
                 <li key={product.id} className="flex gap-4 border-b p-4 last:border-b-0">
                   <div className="relative size-20 shrink-0 overflow-hidden rounded-sm border bg-white">
@@ -125,8 +126,24 @@ export function CheckoutView() {
                         <Link href={`/producto/${product.slug}`} className="line-clamp-2 font-semibold hover:text-brand-blue">
                           {product.name}
                         </Link>
-                        <p className="text-xs text-muted-foreground">
-                          {product.price == null ? 'Precio a cotizar' : `${formatCOP(product.price)} por ${product.unit.toLowerCase()}`}
+                        <p className="flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
+                          {product.price == null ? (
+                            'Precio a cotizar'
+                          ) : (
+                            <>
+                              <span className={line?.percent ? 'font-semibold text-success' : undefined}>
+                                {formatCOP(line?.unitPrice ?? product.price)} por {product.unit.toLowerCase()}
+                              </span>
+                              {line?.percent ? (
+                                <>
+                                  <span className="line-through">{formatCOP(product.price)}</span>
+                                  <span className="rounded-full bg-success/10 px-2 py-0.5 font-semibold text-success">
+                                    −{line.percent}% por volumen
+                                  </span>
+                                </>
+                              ) : null}
+                            </>
+                          )}
                         </p>
                       </div>
                       <Button variant="ghost" size="icon-sm" aria-label={`Quitar ${product.name}`} onClick={() => remove(product.id)}>
@@ -140,9 +157,15 @@ export function CheckoutView() {
                         label={`Cantidad de ${product.name}`}
                       />
                       <span className="font-semibold tabular">
-                        {product.price == null ? 'A cotizar' : formatCOP(product.price * quantity)}
+                        {product.price == null ? 'A cotizar' : formatCOP(line?.lineTotal ?? product.price * quantity)}
                       </span>
                     </div>
+                    {line?.next ? (
+                      <p className="text-xs text-brand-blue">
+                        Desde {line.next.minQty} {pluralOf(product.unit.toLowerCase())}: {formatCOP(line.next.unitPrice)} c/u (−
+                        {line.next.percent}%).
+                      </p>
+                    ) : null}
                     {short ? (
                       <p className="flex items-center gap-1.5 text-xs text-warning">
                         <AlertTriangleIcon className="size-3.5" aria-hidden="true" />
@@ -208,13 +231,26 @@ export function CheckoutView() {
             <input type="text" name="website" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden="true" />
           </FieldGroup>
 
-          <div className="flex flex-col gap-1 rounded-md bg-brand-mist p-4">
+          <div className="flex flex-col gap-2 rounded-md bg-brand-mist p-4">
+            {discount > 0 ? (
+              <>
+                <div className="flex items-baseline justify-between text-sm">
+                  <span className="text-muted-foreground">Precio de lista</span>
+                  <span className="tabular text-muted-foreground line-through">{formatCOP(listSubtotal)}</span>
+                </div>
+                <div className="flex items-baseline justify-between text-sm font-semibold text-success">
+                  <span>Descuento por volumen</span>
+                  <span className="tabular">−{formatCOP(discount)}</span>
+                </div>
+              </>
+            ) : null}
             <div className="flex items-baseline justify-between">
-              <span className="text-sm text-muted-foreground">Subtotal</span>
+              <span className="text-sm text-muted-foreground">{discount > 0 ? 'Total estimado' : 'Subtotal'}</span>
               <span className="text-2xl font-bold tabular">{formatCOP(subtotal)}</span>
             </div>
             <p className="text-xs text-muted-foreground">
-              IVA incluido.{unpricedCount ? ` Más ${plural(unpricedCount, 'producto')} por cotizar.` : ''} El envío se coordina con el asesor.
+              IVA incluido.{unpricedCount ? ` Más ${plural(unpricedCount, 'producto')} por cotizar.` : ''} Es un estimado:
+              el asesor confirma disponibilidad y envío.
             </p>
           </div>
 

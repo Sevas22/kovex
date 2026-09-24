@@ -38,6 +38,7 @@ const product = (p: Partial<ProductSummary>): ProductSummary => ({
   unit: 'Unidad',
   price: 1000,
   compareAtPrice: null,
+  priceTiers: [],
   available: 10,
   lowStockThreshold: 5,
   isFeatured: false,

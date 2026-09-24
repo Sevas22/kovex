@@ -11,6 +11,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { formatCOP, formatDateTime } from '@/lib/format'
 import { computePrice } from '@/lib/pricing'
+import { priceTiersFor } from '@/lib/server/product-pricing'
+import { tierForQuantity } from '@/lib/volume-pricing'
 import { buildCategoryIndex, getCategories } from '@/lib/server/categories'
 import { db } from '@/lib/server/db'
 import { getOrderById, getOrderEvents, listMovements } from '@/lib/server/order-queries'
@@ -40,29 +42,49 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
 
   const editableQuote = order.kind === 'quote' && (order.status === 'pending' || order.status === 'quoted')
 
-  // Precio sugerido para cotizar: precio de venta vigente o, si se cotiza, costo + margen heredado.
-  let suggested = new Map<number, number | null>()
+  // Precio sugerido por línea: precio de venta vigente (o costo + margen si no tiene),
+  // con la escala por cantidad ya aplicada a las unidades que pidió el cliente.
+  const suggested = new Map<number, { price: number | null; cost: number | null; percent: number; minQty: number | null }>()
   if (editableQuote) {
     const index = buildCategoryIndex(categories)
     const ids = order.items.flatMap((i) => (i.productId ? [i.productId] : []))
-    const products = await db()<{ id: number; price: number | null; costPrice: number | null; markupPercent: number | null; categoryId: number | null }[]>`
-      select id, price, cost_price, markup_percent, category_id from public.products where id = any(${ids})
+    const products = await db()<
+      {
+        id: number
+        price: number | null
+        costPrice: number | null
+        markupPercent: number | null
+        categoryId: number | null
+        volumeTiers: unknown
+      }[]
+    >`
+      select id, price, cost_price, markup_percent, category_id, volume_tiers
+      from public.products where id = any(${ids})
     `
-    suggested = new Map(
-      products.map((p) => [
-        p.id,
-        p.price ??
-          computePrice({
-            mode: 'markup',
-            costPrice: p.costPrice,
-            fixedPrice: null,
-            productMarkup: p.markupPercent,
-            categoryMarkup: index.inheritedMarkup(p.categoryId)?.percent ?? null,
-            defaultMarkup: settings.defaultMarkupPercent,
-            rounding: settings.priceRounding,
-          }).price,
-      ]),
-    )
+    const byId = new Map(products.map((p) => [p.id, p]))
+    const ctx = { settings, index }
+    for (const item of order.items) {
+      const product = item.productId == null ? undefined : byId.get(item.productId)
+      if (!product) continue
+      const listPrice =
+        product.price ??
+        computePrice({
+          mode: 'markup',
+          costPrice: product.costPrice,
+          fixedPrice: null,
+          productMarkup: product.markupPercent,
+          categoryMarkup: index.inheritedMarkup(product.categoryId)?.percent ?? null,
+          defaultMarkup: settings.defaultMarkupPercent,
+          rounding: settings.priceRounding,
+        }).price
+      const tier = tierForQuantity(priceTiersFor({ ...product, price: listPrice }, ctx), item.quantity)
+      suggested.set(item.id, {
+        price: tier?.unitPrice ?? listPrice,
+        cost: product.costPrice,
+        percent: tier?.percent ?? 0,
+        minQty: tier?.minQty ?? null,
+      })
+    }
   }
 
   const priceLines = order.items
@@ -128,7 +150,8 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                     unit: i.unit,
                     quantity: i.quantity,
                     unitPrice: i.unitPrice,
-                    suggested: i.productId ? (suggested.get(i.productId) ?? null) : null,
+                    listUnitPrice: i.listUnitPrice,
+                    suggested: suggested.get(i.id) ?? null,
                   }))}
                 />
               ) : (

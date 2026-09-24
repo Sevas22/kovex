@@ -1,6 +1,7 @@
 import 'server-only'
 import { buildCategoryIndex, getCategories } from './categories'
 import { db } from './db'
+import { parseTiers, type VolumeTier } from '@/lib/volume-pricing'
 
 export interface CategoryOption {
   id: number
@@ -8,6 +9,8 @@ export interface CategoryOption {
   depth: number
   /** Margen que heredaría un producto de esta categoría (propio o de un ancestro). */
   inherited: { percent: number; from: string } | null
+  /** Escala por cantidad que heredaría un producto de esta categoría. */
+  inheritedTiers: { tiers: VolumeTier[]; from: string } | null
 }
 
 /** Categorías en orden de árbol, con la ruta completa como etiqueta. */
@@ -17,11 +20,13 @@ export async function getCategoryOptions(): Promise<CategoryOption[]> {
   const walk = (parentId: number | null, depth: number) => {
     for (const c of index.childrenOf(parentId)) {
       const inherited = index.inheritedMarkup(c.id)
+      const tiers = index.inheritedTiers(c.id)
       out.push({
         id: c.id,
         label: index.pathOf(c.id).map((p) => p.name).join(' / '),
         depth,
         inherited: inherited ? { percent: inherited.percent, from: inherited.from.name } : null,
+        inheritedTiers: tiers ? { tiers: tiers.tiers, from: tiers.from.name } : null,
       })
       walk(c.id, depth + 1)
     }
@@ -36,6 +41,10 @@ export interface CategoryMarkupRow {
   depth: number
   markupPercent: number | null
   inherited: { percent: number; from: string } | null
+  /** Escala propia; null = heredada. */
+  volumeTiers: VolumeTier[] | null
+  /** Escala que heredaría del padre (o la general si no hay). */
+  inheritedTiers: { tiers: VolumeTier[]; from: string } | null
   productCount: number
 }
 
@@ -58,6 +67,11 @@ export async function getCategoryMarkupRows(): Promise<CategoryMarkupRow[]> {
         depth,
         markupPercent: c.markupPercent,
         inherited: parentInherited ? { percent: parentInherited.percent, from: parentInherited.from.name } : null,
+        volumeTiers: parseTiers(c.volumeTiers),
+        inheritedTiers: (() => {
+          const found = c.parentId == null ? null : index.inheritedTiers(c.parentId)
+          return found ? { tiers: found.tiers, from: found.from.name } : null
+        })(),
         productCount: index.subtreeIds(c.id).reduce((s, id) => s + (direct.get(id) ?? 0), 0),
       })
       walk(c.id, depth + 1)

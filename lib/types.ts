@@ -1,6 +1,8 @@
 import type { PricingMode } from './pricing'
+import type { PriceTier, VolumeTier } from './volume-pricing'
 
 export type { PricingMode }
+export type { PriceTier, VolumeTier }
 
 export interface StoreSettings {
   businessName: string
@@ -13,6 +15,10 @@ export interface StoreSettings {
   priceRounding: number
   lowStockThreshold: number
   productLimit: number
+  /** Escala general por cantidad; la heredan categorías y productos. */
+  volumeTiers: VolumeTier[]
+  /** Margen mínimo que ningún descuento puede traspasar. */
+  minMarginPercent: number
 }
 
 /** Datos públicos de la tienda que necesitan los componentes de cliente. */
@@ -32,6 +38,8 @@ export interface Category {
   description: string | null
   icon: string | null
   markupPercent: number | null
+  /** null = heredar la escala del padre o la general; [] = sin escala. */
+  volumeTiers: VolumeTier[] | null
   sortOrder: number
   isActive: boolean
 }
@@ -70,6 +78,8 @@ export interface ProductSummary {
   available: number | null
   lowStockThreshold: number
   isFeatured: boolean
+  /** Escalera de precios por cantidad, ya calculada y con el piso de margen aplicado. */
+  priceTiers: PriceTier[]
 }
 
 export interface ProductDetail extends ProductSummary {

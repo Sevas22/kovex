@@ -1,6 +1,7 @@
 import 'server-only'
 import { cache } from 'react'
 import { getCategoryIndex, toLinks } from './categories'
+import { attachPriceTiers, type PricingColumns } from './product-pricing'
 import { db } from './db'
 import { normalizeText } from '@/lib/text'
 import type { Category, CategoryLink, Department, ProductDetail, ProductSpec, ProductSummary } from '@/lib/types'
@@ -30,11 +31,13 @@ export interface CatalogResult {
 
 export const PAGE_SIZE = 24
 
-/** Columnas de ProductSummary; exige el alias p (products) y s (store_settings). */
+/** Columnas de ProductSummary más las privadas que necesita el cálculo de escalas
+ * (las descarta attachPriceTiers). Exige el alias p (products) y s (store_settings). */
 function summaryColumns() {
   const sql = db()
   return sql`
     p.id, p.slug, p.name, p.brand, p.sku, p.images[1] as image, p.unit, p.price, p.compare_at_price,
+    p.cost_price, p.volume_tiers, p.category_id,
     case when p.track_inventory then p.stock - p.reserved end as available,
     coalesce(p.low_stock_threshold, s.low_stock_threshold) as low_stock_threshold,
     p.is_featured
@@ -69,7 +72,7 @@ export async function listProducts(query: CatalogQuery): Promise<CatalogResult> 
   }[query.sort ?? 'relevancia']
 
   const [rows, brands] = await Promise.all([
-    sql<(ProductSummary & { totalCount: number })[]>`
+    sql<(ProductSummary & PricingColumns & { totalCount: number })[]>`
       select ${summaryColumns()}, count(*) over ()::int as total_count
       from public.products p cross join public.store_settings s
       where ${where(withBrands)}
@@ -88,7 +91,7 @@ export async function listProducts(query: CatalogQuery): Promise<CatalogResult> 
 
   const total = rows[0]?.totalCount ?? 0
   return {
-    items: rows.map(({ totalCount: _, ...item }) => item),
+    items: await attachPriceTiers(rows.map(({ totalCount: _, ...item }) => item)),
     total,
     page,
     pageSize: PAGE_SIZE,
@@ -126,13 +129,14 @@ export const getDepartments = cache(async (): Promise<Department[]> => {
 })
 
 export async function getFeaturedProducts(limit = 8): Promise<ProductSummary[]> {
-  return db()<ProductSummary[]>`
+  const rows = await db()<(ProductSummary & PricingColumns)[]>`
     select ${summaryColumns()}
     from public.products p cross join public.store_settings s
     where p.is_active
     order by p.is_featured desc, p.created_at desc
     limit ${limit}
   `
+  return attachPriceTiers(rows)
 }
 
 export interface CatalogFigures {
@@ -163,24 +167,23 @@ export async function getBrands(limit = 12): Promise<{ name: string; count: numb
   `
 }
 
-interface ProductRow extends ProductSummary {
+interface ProductRow extends ProductSummary, PricingColumns {
   description: string | null
   specs: ProductSpec[]
   images: string[]
   taxRate: number
-  categoryId: number | null
 }
 
 export const getProductBySlug = cache(async (slug: string): Promise<ProductDetail | null> => {
   const [row] = await db()<ProductRow[]>`
-    select ${summaryColumns()}, p.description, p.specs, p.images, p.tax_rate, p.category_id
+    select ${summaryColumns()}, p.description, p.specs, p.images, p.tax_rate
     from public.products p cross join public.store_settings s
     where p.slug = ${slug} and p.is_active
   `
   if (!row) return null
   const index = await getCategoryIndex()
-  const { categoryId, ...product } = row
-  return { ...product, breadcrumbs: toLinks(index.pathOf(categoryId)) }
+  const [product] = await attachPriceTiers([row])
+  return { ...product, breadcrumbs: toLinks(index.pathOf(row.categoryId)) }
 })
 
 /** Otros productos de la misma categoría (o del departamento si hay pocos). */
@@ -193,21 +196,23 @@ export async function getRelatedProducts(slug: string, limit = 4): Promise<Produ
   const index = await getCategoryIndex()
   const path = index.pathOf(row.categoryId)
   const scope = path.length > 1 ? path[path.length - 2] : path[0]
-  return sql<ProductSummary[]>`
+  const rows = await sql<(ProductSummary & PricingColumns)[]>`
     select ${summaryColumns()}
     from public.products p cross join public.store_settings s
     where p.is_active and p.id <> ${row.id} and p.category_id = any(${index.subtreeIds(scope.id)})
     order by (p.category_id = ${row.categoryId}) desc, p.is_featured desc, p.created_at desc
     limit ${limit}
   `
+  return attachPriceTiers(rows)
 }
 
 /** Datos frescos (precio y disponibilidad) de los productos del carrito. */
 export async function lookupProducts(ids: number[]): Promise<ProductSummary[]> {
   if (ids.length === 0) return []
-  return db()<ProductSummary[]>`
+  const rows = await db()<(ProductSummary & PricingColumns)[]>`
     select ${summaryColumns()}
     from public.products p cross join public.store_settings s
     where p.is_active and p.id = any(${ids})
   `
+  return attachPriceTiers(rows)
 }

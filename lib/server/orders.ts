@@ -1,6 +1,10 @@
 import 'server-only'
 import { db, type Tx } from './db'
+import { buildCategoryIndex, loadCategories } from './categories'
 import { reserveStock, settleOrderStock, StockError } from './inventory'
+import { priceTiersFor } from './product-pricing'
+import { loadSettings } from './settings'
+import { priceLine } from '@/lib/volume-pricing'
 import { normalizePhone } from '@/lib/text'
 import type { CartLine, CustomerInput, OrderKind, OrderStatus, StockState } from '@/lib/types'
 
@@ -34,6 +38,9 @@ interface ProductForOrder {
   unit: string
   price: number | null
   isActive: boolean
+  costPrice: number | null
+  volumeTiers: unknown
+  categoryId: number | null
 }
 
 export async function createOrder(input: {
@@ -46,7 +53,8 @@ export async function createOrder(input: {
 
   return db().begin(async (tx) => {
     const products = await tx<ProductForOrder[]>`
-      select id, name, sku, images[1] as image, unit, price, is_active
+      select id, name, sku, images[1] as image, unit, price, is_active,
+             cost_price, volume_tiers, category_id
       from public.products
       where id = any(${ids})
       order by id
@@ -82,17 +90,32 @@ export async function createOrder(input: {
       returning id
     `
 
-    const lines = input.items.map((i) => ({ ...i, product: byId.get(i.productId)! }))
-    const subtotal = lines.reduce((sum, l) => sum + (l.product.price ?? 0) * l.quantity, 0)
+    // La escala por cantidad se recalcula aquí: el navegador nunca define precios.
+    const [settings, categories] = await Promise.all([loadSettings(tx), loadCategories(tx)])
+    const ctx = { settings, index: buildCategoryIndex(categories) }
+
+    const lines = input.items.map((i) => {
+      const product = byId.get(i.productId)!
+      const price = priceLine({
+        listPrice: product.price,
+        tiers: priceTiersFor(product, ctx),
+        quantity: i.quantity,
+      })
+      return { ...i, product, price }
+    })
+    const subtotal = lines.reduce((sum, l) => sum + l.price.lineTotal, 0)
+    const discountTotal = lines.reduce((sum, l) => sum + l.price.saved, 0)
     const hasUnpriced = lines.some((l) => l.product.price == null)
 
     const [order] = await tx<CreatedOrder[]>`
       insert into public.orders
         (kind, customer_id, customer_name, customer_company, customer_document, customer_phone,
-         customer_email, customer_city, customer_address, customer_notes, subtotal, has_unpriced_items)
+         customer_email, customer_city, customer_address, customer_notes, subtotal, discount_total,
+         has_unpriced_items)
       values
         (${input.kind}, ${customer.id}, ${c.name}, ${c.company || null}, ${c.document || null}, ${phone},
-         ${c.email || null}, ${c.city || null}, ${c.address || null}, ${c.notes || null}, ${subtotal}, ${hasUnpriced})
+         ${c.email || null}, ${c.city || null}, ${c.address || null}, ${c.notes || null}, ${subtotal},
+         ${discountTotal}, ${hasUnpriced})
       returning id, code, public_token::text as public_token, kind
     `
 
@@ -104,7 +127,9 @@ export async function createOrder(input: {
       productImage: l.product.image,
       unit: l.product.unit,
       quantity: l.quantity,
-      unitPrice: l.product.price,
+      unitPrice: l.price.unitPrice,
+      listUnitPrice: l.price.listUnitPrice,
+      discountPercent: l.price.percent,
     }))
     await tx`insert into public.order_items ${tx(items)}`
 
@@ -167,6 +192,10 @@ async function recomputeTotals(tx: Tx, orderId: number) {
   await tx`
     update public.orders o set
       subtotal = coalesce((select sum(line_total) from public.order_items where order_id = o.id), 0),
+      discount_total = coalesce((
+        select sum((coalesce(list_unit_price, unit_price) - unit_price)::bigint * quantity)
+        from public.order_items where order_id = o.id and unit_price is not null
+      ), 0),
       has_unpriced_items = exists (
         select 1 from public.order_items where order_id = o.id and unit_price is null
       )

@@ -32,8 +32,11 @@ export default async function OrderConfirmationPage({ params }: { params: Promis
       quantity: i.quantity,
       unit: i.unit,
       unitPrice: i.unitPrice,
+      listUnitPrice: i.listUnitPrice,
+      discountPercent: i.discountPercent,
     })),
     subtotal: order.subtotal,
+    discountTotal: order.discountTotal,
     hasUnpricedItems: order.hasUnpricedItems,
     customer: {
       name: order.customerName,
@@ -114,6 +117,13 @@ export default async function OrderConfirmationPage({ params }: { params: Promis
                 )}
                 <p className="text-xs text-muted-foreground tabular">
                   {item.quantity} × {item.unitPrice == null ? 'precio a cotizar' : formatCOP(item.unitPrice)}
+                  {item.discountPercent > 0 && item.listUnitPrice ? (
+                    <>
+                      {' '}
+                      <span className="line-through">{formatCOP(item.listUnitPrice)}</span>{' '}
+                      <span className="font-semibold text-success">−{item.discountPercent}%</span>
+                    </>
+                  ) : null}
                 </p>
               </div>
               <span className="text-sm font-semibold tabular">
@@ -122,11 +132,28 @@ export default async function OrderConfirmationPage({ params }: { params: Promis
             </li>
           ))}
         </ul>
-        <div className="flex items-baseline justify-between border-t bg-brand-mist px-5 py-4">
-          <span className="text-sm text-muted-foreground">
-            Subtotal{order.hasUnpricedItems ? ' (sin productos por cotizar)' : ''}
-          </span>
-          <span className="text-xl font-bold tabular">{formatCOP(order.subtotal)}</span>
+        <div className="flex flex-col gap-2 border-t bg-brand-mist px-5 py-4">
+          {order.discountTotal > 0 ? (
+            <>
+              <div className="flex items-baseline justify-between text-sm">
+                <span className="text-muted-foreground">Precio de lista</span>
+                <span className="tabular text-muted-foreground line-through">
+                  {formatCOP(order.subtotal + order.discountTotal)}
+                </span>
+              </div>
+              <div className="flex items-baseline justify-between text-sm font-semibold text-success">
+                <span>Descuento por volumen</span>
+                <span className="tabular">−{formatCOP(order.discountTotal)}</span>
+              </div>
+            </>
+          ) : null}
+          <div className="flex items-baseline justify-between">
+            <span className="text-sm text-muted-foreground">
+              {order.discountTotal > 0 ? 'Total estimado' : 'Subtotal'}
+              {order.hasUnpricedItems ? ' (sin productos por cotizar)' : ''}
+            </span>
+            <span className="text-xl font-bold tabular">{formatCOP(order.subtotal)}</span>
+          </div>
         </div>
       </section>
 

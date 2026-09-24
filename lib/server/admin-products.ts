@@ -8,6 +8,7 @@ import { loadSettings } from './settings'
 import type { PricingMode } from '@/lib/pricing'
 import { normalizeText, slugify } from '@/lib/text'
 import type { ProductSpec } from '@/lib/types'
+import { normalizeTiers, type VolumeTier } from '@/lib/volume-pricing'
 
 export interface AdminProductRow {
   id: number
@@ -64,7 +65,7 @@ export async function listAdminProducts(opts: { q?: string; category?: number; s
   const where = conds.reduce((acc, c) => sql`${acc} and ${c}`)
   return sql<AdminProductRow[]>`
     select p.id, p.slug, p.name, p.brand, p.sku, p.images[1] as image, p.category_id, p.pricing_mode, p.cost_price,
-           p.markup_percent, p.fixed_price, p.price, p.stock, p.reserved, p.track_inventory,
+           p.markup_percent, p.volume_tiers, p.fixed_price, p.price, p.stock, p.reserved, p.track_inventory,
            ${low} as low_stock_threshold, p.is_active, p.is_featured, p.source_available, sup.name as supplier_name
     from public.products p
     cross join public.store_settings s
@@ -76,6 +77,8 @@ export async function listAdminProducts(opts: { q?: string; category?: number; s
 }
 
 export interface AdminProductDetail extends AdminProductRow {
+  /** Escala propia del producto; null = heredada. */
+  volumeTiers: VolumeTier[] | null
   description: string | null
   specs: ProductSpec[]
   images: string[]
@@ -93,7 +96,7 @@ export async function getAdminProduct(id: number): Promise<AdminProductDetail | 
   if (!Number.isInteger(id) || id <= 0) return null
   const [row] = await db()<AdminProductDetail[]>`
     select p.id, p.slug, p.name, p.brand, p.sku, p.images[1] as image, p.category_id, p.pricing_mode, p.cost_price,
-           p.markup_percent, p.fixed_price, p.price, p.stock, p.reserved, p.track_inventory,
+           p.markup_percent, p.volume_tiers, p.fixed_price, p.price, p.stock, p.reserved, p.track_inventory,
            coalesce(p.low_stock_threshold, s.low_stock_threshold) as low_stock_threshold,
            p.low_stock_threshold as own_low_stock_threshold,
            p.is_active, p.is_featured, p.source_available, sup.name as supplier_name,
@@ -121,6 +124,8 @@ export interface ProductInput {
   markupPercent: number | null
   fixedPrice: number | null
   compareAtPrice: number | null
+  /** null = heredar la escala de la categoría o la general. */
+  volumeTiers: VolumeTier[] | null
   taxRate: number
   trackInventory: boolean
   lowStockThreshold: number | null
@@ -155,6 +160,7 @@ export async function saveProduct(id: number | null, input: ProductInput, opts: 
       pricingMode: input.pricingMode,
       costPrice: input.costPrice,
       markupPercent: input.markupPercent,
+      volumeTiers: input.volumeTiers == null ? null : tx.json(normalizeTiers(input.volumeTiers) as never),
       fixedPrice: input.fixedPrice,
       compareAtPrice: input.compareAtPrice,
       taxRate: input.taxRate,

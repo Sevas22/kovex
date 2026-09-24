@@ -106,7 +106,12 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
       <ProductForm
         product={product}
         categories={categories}
-        pricing={{ defaultMarkupPercent: settings.defaultMarkupPercent, priceRounding: settings.priceRounding }}
+        pricing={{
+          defaultMarkupPercent: settings.defaultMarkupPercent,
+          priceRounding: settings.priceRounding,
+          volumeTiers: settings.volumeTiers,
+          minMarginPercent: settings.minMarginPercent,
+        }}
       />
     </>
   )

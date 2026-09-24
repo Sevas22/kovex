@@ -12,6 +12,10 @@ export interface OrderItemView {
   unit: string
   quantity: number
   unitPrice: number | null
+  /** Precio por unidad sin escala por cantidad. */
+  listUnitPrice: number | null
+  /** Descuento por volumen aplicado en esa línea. */
+  discountPercent: number
   lineTotal: number | null
   stockTracked: boolean
 }
@@ -33,6 +37,8 @@ export interface OrderView {
   customerAddress: string | null
   customerNotes: string | null
   subtotal: number
+  /** Ahorro total por escalas de cantidad. */
+  discountTotal: number
   hasUnpricedItems: boolean
   adminNotes: string | null
   confirmedAt: Date | null
@@ -57,7 +63,7 @@ async function loadOrder(where: { id?: number; token?: string }): Promise<OrderV
   if (!order) return null
   const items = await sql<OrderItemView[]>`
     select i.id, i.product_id, p.slug as product_slug, i.product_name, i.product_sku, i.product_image, i.unit,
-           i.quantity, i.unit_price, i.line_total, i.stock_tracked
+           i.quantity, i.unit_price, i.list_unit_price, i.discount_percent, i.line_total, i.stock_tracked
     from public.order_items i
     left join public.products p on p.id = i.product_id
     where i.order_id = ${order.id}

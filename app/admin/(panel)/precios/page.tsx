@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { CategoryMarkupRowView } from '@/components/admin/category-markup-row'
+import { VolumeSettingsForm } from '@/components/admin/volume-settings-form'
 import { PageHeader } from '@/components/admin/page-header'
 import { PricingSettingsForm } from '@/components/admin/pricing-settings-form'
 import { Badge } from '@/components/ui/badge'
@@ -43,6 +44,24 @@ export default async function PricingPage() {
 
         <Card>
           <CardHeader>
+            <CardTitle>Escala por cantidad (precio mayorista)</CardTitle>
+            <CardDescription>
+              Descuento sobre el precio de venta según las unidades de cada producto. Se hereda igual que el margen:
+              producto, luego categoría, luego esta escala general. Si no hay escalones, el precio no cambia con la
+              cantidad.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <VolumeSettingsForm
+              volumeTiers={settings.volumeTiers}
+              minMarginPercent={settings.minMarginPercent}
+              priceRounding={settings.priceRounding}
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
             <CardTitle>Margen por categoría</CardTitle>
             <CardDescription>
               Déjalo vacío para heredar. Un margen en un departamento aplica a todas sus subcategorías salvo que tengan uno
@@ -57,12 +76,18 @@ export default async function PricingPage() {
                   <TableHead className="text-right">Productos</TableHead>
                   <TableHead>Margen propio</TableHead>
                   <TableHead>Se aplica</TableHead>
+                  <TableHead>Escala por cantidad</TableHead>
                   <TableHead />
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {rows.map((row) => (
-                  <CategoryMarkupRowView key={row.id} row={row} defaultMarkup={settings.defaultMarkupPercent} />
+                  <CategoryMarkupRowView
+                    key={row.id}
+                    row={row}
+                    defaultMarkup={settings.defaultMarkupPercent}
+                    generalTiers={settings.volumeTiers}
+                  />
                 ))}
               </TableBody>
             </Table>

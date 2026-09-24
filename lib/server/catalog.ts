@@ -135,6 +135,23 @@ export async function getFeaturedProducts(limit = 8): Promise<ProductSummary[]> 
   `
 }
 
+export interface CatalogFigures {
+  products: number
+  departments: number
+  brands: number
+}
+
+/** Cifras del catálogo para la presentación de la empresa (se calculan, no se escriben a mano). */
+export const getCatalogFigures = cache(async (): Promise<CatalogFigures> => {
+  const [row] = await db()<CatalogFigures[]>`
+    select
+      (select count(*)::int from public.products where is_active) as products,
+      (select count(*)::int from public.categories where parent_id is null and is_active) as departments,
+      (select count(distinct brand)::int from public.products where is_active and brand is not null) as brands
+  `
+  return row
+})
+
 export async function getBrands(limit = 12): Promise<{ name: string; count: number }[]> {
   return db()<{ name: string; count: number }[]>`
     select brand as name, count(*)::int as count

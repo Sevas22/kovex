@@ -21,14 +21,19 @@ export function MissionValues() {
 
         <div className="mt-16 border-t border-border pt-12 md:mt-20">
           <CompanyHeading>Nuestros valores</CompanyHeading>
-          <ul className="reveal-children mt-8 grid gap-10 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8">
+          <ul className="reveal-children mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {COMPANY.values.map((value, i) => {
               const Icon = VALUE_ICONS[i]
               return (
-                <li key={value.title} className="flex flex-col gap-3">
-                  <Icon className="size-9 text-brand-blue" strokeWidth={1.5} aria-hidden="true" />
-                  <h3 className="text-lg font-bold text-brand-navy">{value.title}</h3>
-                  <p className="leading-relaxed text-muted-foreground">{value.text}</p>
+                <li
+                  key={value.title}
+                  className="flex flex-col gap-4 rounded-md bg-white p-6 transition-transform duration-300 hover:-translate-y-1"
+                >
+                  <span className="chamfer chamfer-sm flex size-11 items-center justify-center bg-brand-navy text-white">
+                    <Icon className="size-5" strokeWidth={1.6} aria-hidden="true" />
+                  </span>
+                  <h3 className="font-display text-sm text-brand-navy uppercase">{value.title}</h3>
+                  <p className="text-sm leading-relaxed text-muted-foreground">{value.text}</p>
                 </li>
               )
             })}

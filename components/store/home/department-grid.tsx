@@ -1,15 +1,16 @@
+import { ArrowRightIcon } from 'lucide-react'
 import Link from 'next/link'
 import { SectionHeading } from './section-heading'
 import { ProductImage } from '@/components/store/product-image'
-import { plural } from '@/lib/format'
 import type { Department } from '@/lib/types'
 
 export function DepartmentGrid({ departments }: { departments: Department[] }) {
   return (
-    <section className="mx-auto max-w-7xl px-4 py-12 md:py-16">
+    <section className="mx-auto max-w-7xl px-4 py-14 md:py-20">
       <SectionHeading
+        eyebrow="Catálogo"
         title="Compra por departamento"
-        description="Seis líneas de producto para abastecer tu negocio."
+        description="Seis líneas de producto para abastecer tu negocio desde un solo proveedor."
         link={{ href: '/catalogo', label: 'Todo el catálogo' }}
         className="reveal"
       />
@@ -28,10 +29,16 @@ export function DepartmentGrid({ departments }: { departments: Department[] }) {
               <div className="relative aspect-square transition-transform duration-500 group-hover:scale-105">
                 <ProductImage src={d.image} alt="" sizes="(max-width: 640px) 50vw, 16vw" className="p-5" />
               </div>
-              <div className="border-t px-3 py-3">
-                <p className="font-semibold text-brand-navy group-hover:text-brand-blue">{d.name}</p>
-                <p className="text-xs text-muted-foreground">
-                  {d.productCount ? plural(d.productCount, 'producto') : 'Próximamente'}
+              <div className="border-t px-3 py-3.5">
+                <p className="font-display text-[0.8rem] leading-tight text-brand-navy uppercase group-hover:text-brand-blue">
+                  {d.name}
+                </p>
+                <p className="mt-2 flex items-center gap-1 text-xs font-semibold text-brand-blue">
+                  Ver línea
+                  <ArrowRightIcon
+                    className="size-3.5 transition-transform group-hover:translate-x-0.5"
+                    aria-hidden="true"
+                  />
                 </p>
               </div>
             </Link>

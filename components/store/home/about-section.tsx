@@ -1,10 +1,12 @@
 import { PackageIcon, TagIcon, TruckIcon } from 'lucide-react'
 import { CompanyHeading } from './company-heading'
+import { KeyFigures } from './key-figures'
 import { COMPANY } from '@/lib/company'
+import type { CatalogFigures } from '@/lib/server/catalog'
 
 const PILLAR_ICONS = [PackageIcon, TagIcon, TruckIcon]
 
-export function AboutSection() {
+export function AboutSection({ figures }: { figures: CatalogFigures }) {
   return (
     <section id="nosotros" className="scroll-mt-32 border-t bg-white">
       <div className="mx-auto max-w-7xl px-4 py-16 md:py-24">
@@ -37,6 +39,10 @@ export function AboutSection() {
               )
             })}
           </dl>
+        </div>
+
+        <div className="mt-16 border-t pt-12 md:mt-20">
+          <KeyFigures figures={figures} />
         </div>
       </div>
     </section>

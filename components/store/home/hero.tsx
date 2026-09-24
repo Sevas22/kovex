@@ -1,34 +1,42 @@
-import { ArrowDownIcon, ArrowRightIcon } from 'lucide-react'
+import { ArrowDownIcon, ArrowRightIcon, CheckIcon } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { WhatsAppIcon } from '@/components/brand/whatsapp-icon'
 import { Button } from '@/components/ui/button'
+
+const TRUST = ['Sin registros ni pasarelas', 'Pedido en 3 pasos', 'Cotización sin compromiso']
 
 export function Hero({ whatsappUrl, categories = [] }: { whatsappUrl: string; categories?: string[] }) {
   return (
     <>
       <section className="relative overflow-hidden bg-brand-mist">
         <div className="mx-auto max-w-7xl px-4">
-          <div className="relative z-10 flex flex-col gap-6 py-12 md:py-16 lg:w-[46%] lg:py-28">
-            <h1 className="anim-in font-display text-[1.7rem] leading-[1.2] text-brand-navy uppercase sm:text-4xl xl:text-[2.75rem]">
-              Soluciones{' '}
-              <span className="relative inline-block text-brand-blue">
-                mayoristas
-                <span
-                  aria-hidden="true"
-                  className="anim-underline absolute -bottom-1 left-0 h-[3px] w-full bg-brand-cyan"
-                />
-              </span>{' '}
-              para tu negocio
-            </h1>
+          <div className="relative z-10 flex flex-col gap-6 py-12 md:py-16 lg:w-[46%] lg:py-32">
+            <div className="flex flex-col gap-4">
+              <p className="anim-in flex items-center gap-2.5 text-[0.7rem] font-semibold tracking-[0.25em] text-brand-blue uppercase">
+                <span aria-hidden="true" className="inline-block size-1.5 rotate-45 bg-brand-cyan" />
+                Distribuidor mayorista · Colombia
+              </p>
+              <h1 className="anim-in font-display text-[1.85rem] leading-[1.15] text-brand-navy uppercase sm:text-[2.6rem] xl:text-[3.15rem]">
+                Soluciones{' '}
+                <span className="relative inline-block text-brand-blue">
+                  mayoristas
+                  <span
+                    aria-hidden="true"
+                    className="anim-underline absolute -bottom-1 left-0 h-[3px] w-full bg-brand-cyan"
+                  />
+                </span>{' '}
+                para tu negocio
+              </h1>
+            </div>
             <p className="anim-in anim-delay-1 max-w-md text-base leading-relaxed text-muted-foreground md:text-lg">
               Ferretería, agro, hogar, maquinaria, tecnología y electro en un solo proveedor. Arma tu pedido aquí y
               ciérralo con un asesor por WhatsApp.
             </p>
-            <div className="anim-in anim-delay-2 flex flex-wrap gap-3">
+            <div className="anim-in anim-delay-2 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               <Button
                 size="xl"
-                className="chamfer pr-7 transition-transform hover:-translate-y-0.5"
+                className="chamfer justify-center pr-7 transition-transform hover:-translate-y-0.5 sm:justify-start"
                 nativeButton={false}
                 render={<Link href="/catalogo" />}
               >
@@ -38,7 +46,7 @@ export function Hero({ whatsappUrl, categories = [] }: { whatsappUrl: string; ca
               <Button
                 size="xl"
                 variant="outline"
-                className="transition-transform hover:-translate-y-0.5"
+                className="justify-center transition-transform hover:-translate-y-0.5 sm:justify-start"
                 nativeButton={false}
                 render={<a href={whatsappUrl} target="_blank" rel="noopener noreferrer" />}
               >
@@ -46,6 +54,14 @@ export function Hero({ whatsappUrl, categories = [] }: { whatsappUrl: string; ca
                 Cotizar por WhatsApp
               </Button>
             </div>
+            <ul className="anim-in anim-delay-3 flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground">
+              {TRUST.map((item) => (
+                <li key={item} className="flex items-center gap-2">
+                  <CheckIcon className="size-4 shrink-0 text-brand-blue" strokeWidth={2.5} aria-hidden="true" />
+                  {item}
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
 

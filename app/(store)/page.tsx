@@ -17,7 +17,7 @@ import { JsonLd } from '@/components/store/json-ld'
 import { ProductCard } from '@/components/store/product-card'
 import { COMPANY } from '@/lib/company'
 import { getSiteUrl } from '@/lib/server/site-url'
-import { getBrands, getDepartments, getFeaturedProducts } from '@/lib/server/catalog'
+import { getBrands, getCatalogFigures, getDepartments, getFeaturedProducts } from '@/lib/server/catalog'
 import { getPublicStoreInfo } from '@/lib/server/settings'
 import { whatsappLink } from '@/lib/whatsapp'
 
@@ -36,11 +36,12 @@ const PROMISE_WORDS = [
 ]
 
 export default async function HomePage() {
-  const [departments, featured, brands, store] = await Promise.all([
+  const [departments, featured, brands, store, figures] = await Promise.all([
     getDepartments(),
     getFeaturedProducts(8),
     getBrands(12),
     getPublicStoreInfo(),
+    getCatalogFigures(),
   ])
   const quoteUrl = whatsappLink(store.whatsappNumber, 'Hola KOVEX, quiero una cotización mayorista.')
   const questionUrl = whatsappLink(store.whatsappNumber, 'Hola KOVEX, tengo una pregunta.')
@@ -82,6 +83,7 @@ export default async function HomePage() {
       {featured.length ? (
         <section className="mx-auto max-w-7xl px-4 pb-16">
           <SectionHeading
+            eyebrow="Selección KOVEX"
             title="Productos destacados"
             description="Lo que más piden nuestros clientes mayoristas."
             link={{ href: '/catalogo', label: 'Ver catálogo' }}
@@ -98,7 +100,7 @@ export default async function HomePage() {
       <CinemaScroll whatsappUrl={quoteUrl} />
 
       {/* Presentación de la empresa */}
-      <AboutSection />
+      <AboutSection figures={figures} />
       <MissionValues />
       <Manifesto />
       <BigMarquee words={PROMISE_WORDS} label="Nuestra promesa mayorista" />
@@ -111,7 +113,7 @@ export default async function HomePage() {
         max="5.5rem"
       />
 
-      <HowToBuy />
+      <HowToBuy whatsappUrl={quoteUrl} />
       <Faq whatsappUrl={questionUrl} />
       <CtaBand whatsappUrl={quoteUrl} brands={brands.map((b) => b.name)} />
     </>

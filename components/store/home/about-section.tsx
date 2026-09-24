@@ -1,6 +1,5 @@
 import { PackageIcon, TagIcon, TruckIcon } from 'lucide-react'
 import { CompanyHeading } from './company-heading'
-import { MonogramMeaning } from './monogram-meaning'
 import { COMPANY } from '@/lib/company'
 
 const PILLAR_ICONS = [PackageIcon, TagIcon, TruckIcon]
@@ -20,10 +19,6 @@ export function AboutSection() {
             <p className="text-foreground">{COMPANY.about}</p>
             <p>{COMPANY.aboutDetail}</p>
           </div>
-        </div>
-
-        <div className="mt-16 md:mt-20">
-          <MonogramMeaning />
         </div>
 
         <div className="mt-16 md:mt-20">

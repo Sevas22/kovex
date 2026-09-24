@@ -2,6 +2,9 @@ import Image from 'next/image'
 import { COMPANY } from '@/lib/company'
 import { cn } from '@/lib/utils'
 
+// Fuera del inicio por decisión del cliente (2026-09-24): queda listo para la futura
+// página "Nosotros" o para la presentación de marca.
+//
 // Lienzo de 260 × 100 unidades. El monograma (391 × 448 px) ocupa el alto completo y queda
 // centrado: 87,3 unidades de ancho a partir de x = 86,4. Cada punto marca el trazo que describe.
 const CANVAS_WIDTH = 260

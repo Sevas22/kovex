@@ -1,6 +1,7 @@
 import { ArrowRightIcon } from 'lucide-react'
 import Link from 'next/link'
 import { Logo } from '@/components/brand/logo'
+import { BrandStrip } from '@/components/store/brand-strip'
 import { WhatsAppIcon } from '@/components/brand/whatsapp-icon'
 import { Button } from '@/components/ui/button'
 
@@ -16,19 +17,7 @@ export function CtaBand({ whatsappUrl, brands }: { whatsappUrl: string; brands: 
             Marcas que distribuimos
           </h2>
           {/* Cinta continua: se detiene al pasar el mouse o con el teclado */}
-          <div className="marquee overflow-hidden">
-            <ul className="marquee-track gap-2.5">
-              {[...brands, ...brands].map((b, i) => (
-                <li
-                  key={`${b}-${i}`}
-                  aria-hidden={i >= brands.length}
-                  className="rounded-sm border bg-white px-5 py-3 font-display text-xs whitespace-nowrap text-brand-navy uppercase"
-                >
-                  {b}
-                </li>
-              ))}
-            </ul>
-          </div>
+          <BrandStrip brands={brands} />
         </div>
       ) : null}
 

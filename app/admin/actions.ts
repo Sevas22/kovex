@@ -138,7 +138,17 @@ const productSchema = z
     categoryId: id.nullable(),
     unit: z.string().trim().min(1).max(40),
     description: z.string().trim().max(5000).nullable(),
-    images: z.array(z.url('Una de las imágenes no es una URL válida.').max(500)).max(10),
+    // Una imagen es una URL del proveedor o un archivo subido al panel (/imagenes/<id>).
+    images: z
+      .array(
+        z
+          .string()
+          .max(500)
+          .refine((v) => /^https?:\/\//i.test(v) || /^\/imagenes\/[0-9a-f-]{36}\.[a-z0-9]+$/i.test(v), {
+            message: 'Una de las imágenes no es una URL válida.',
+          }),
+      )
+      .max(10),
     specs: z.array(z.object({ label: z.string().trim().min(1).max(80), value: z.string().trim().min(1).max(300) })).max(40),
     pricingMode: z.enum(['markup', 'fixed', 'quote']),
     costPrice: money.nullable(),
@@ -164,7 +174,10 @@ const productSchema = z
 export type ProductFormInput = z.input<typeof productSchema>
 
 export async function saveProductAction(productId: number | null, input: ProductFormInput, initialStock?: number) {
-  const data = productSchema.parse(input)
+  const parsed = productSchema.safeParse(input)
+  // Un error de validación se le muestra al asesor, no se convierte en pantalla de error.
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "Revisa los datos del producto." } as const
+  const data = parsed.data
   const stock = z.number().int().min(0).max(1_000_000).optional().parse(initialStock)
   return run(
     (actor) => saveProduct(productId == null ? null : id.parse(productId), data, { initialStock: stock, actor }),

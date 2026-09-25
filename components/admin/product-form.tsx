@@ -3,6 +3,7 @@
 import { PlusIcon, SaveIcon, Trash2Icon } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { ImageUploader } from './image-uploader'
 import { PriceBreakdownView } from './price-breakdown'
 import { VolumeTiersField } from './volume-tiers-field'
 import { useAdminAction } from './use-action'
@@ -43,7 +44,7 @@ export function ProductForm({ product, categories, pricing }: ProductFormProps) 
   const [categoryId, setCategoryId] = useState<string>(product?.categoryId ? String(product.categoryId) : '')
   const [unit, setUnit] = useState(product?.unit ?? 'Unidad')
   const [description, setDescription] = useState(product?.description ?? '')
-  const [images, setImages] = useState((product?.images ?? []).join('\n'))
+  const [images, setImages] = useState<string[]>(product?.images ?? [])
   const [specs, setSpecs] = useState(product?.specs ?? [])
   const [mode, setMode] = useState<PricingMode>(product?.pricingMode ?? 'markup')
   const [cost, setCost] = useState(toText(product?.costPrice))
@@ -82,7 +83,7 @@ export function ProductForm({ product, categories, pricing }: ProductFormProps) 
     floorPrice: floorPriceFor(toInt(cost), pricing.minMarginPercent),
     rounding: pricing.priceRounding,
   })
-  const imageList = images.split('\n').map((s) => s.trim()).filter(Boolean)
+  const imageList = images.map((s) => s.trim()).filter(Boolean)
 
   function submit(e: React.FormEvent) {
     e.preventDefault()
@@ -167,25 +168,7 @@ export function ProductForm({ product, categories, pricing }: ProductFormProps) 
                 <FieldLabel htmlFor="p-desc">Descripción</FieldLabel>
                 <Textarea id="p-desc" value={description} onChange={(e) => setDescription(e.target.value)} rows={4} />
               </Field>
-              <Field>
-                <FieldLabel htmlFor="p-images">Imágenes</FieldLabel>
-                <Textarea
-                  id="p-images"
-                  value={images}
-                  onChange={(e) => setImages(e.target.value)}
-                  rows={3}
-                  placeholder="https://… (una URL por línea; la primera es la principal)"
-                  className="font-mono text-xs"
-                />
-                {imageList.length ? (
-                  <div className="flex flex-wrap gap-2 pt-1">
-                    {imageList.slice(0, 6).map((src) => (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img key={src} src={src} alt="" className="size-16 rounded-sm border bg-white object-contain p-1" />
-                    ))}
-                  </div>
-                ) : null}
-              </Field>
+              <ImageUploader value={images} onChange={setImages} />
             </FieldGroup>
           </CardContent>
         </Card>

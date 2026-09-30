@@ -21,6 +21,25 @@ import { plural } from '@/lib/format'
 import { getDepartments, listProducts } from '@/lib/server/catalog'
 import { cn } from '@/lib/utils'
 
+/**
+ * Páginas visibles en el control de paginación: primera, última, la actual y sus
+ * vecinas, con puntos suspensivos entre saltos. Con 84 páginas no caben todas.
+ */
+function pageWindow(page: number, pageCount: number): (number | 'gap')[] {
+  const visible = new Set<number>()
+  for (const n of [1, 2, pageCount - 1, pageCount, page - 1, page, page + 1]) {
+    if (n >= 1 && n <= pageCount) visible.add(n)
+  }
+  const out: (number | 'gap')[] = []
+  let previous = 0
+  for (const n of [...visible].sort((a, b) => a - b)) {
+    if (previous && n - previous > 1) out.push('gap')
+    out.push(n)
+    previous = n
+  }
+  return out
+}
+
 export async function CatalogPage({ category, searchParams }: { category?: string; searchParams: SearchParams }) {
   const params = parseCatalogParams(searchParams)
   const [result, departments] = await Promise.all([
@@ -72,7 +91,10 @@ export async function CatalogPage({ category, searchParams }: { category?: strin
 
       <header className="mt-4 border-b pb-6">
         <h1 className="font-display text-2xl text-brand-navy uppercase md:text-3xl">{title}</h1>
-        <p className="mt-2 text-sm text-muted-foreground">{plural(result.total, 'producto')}</p>
+        <p className="mt-2 text-sm text-muted-foreground">
+          {plural(result.total, 'producto')}
+          {result.pageCount > 1 ? ` · página ${result.page} de ${result.pageCount}` : ''}
+        </p>
         {subcategories.length ? (
           <nav aria-label="Subcategorías" className="mt-5 flex flex-wrap gap-2">
             {subcategories.map((c) => (
@@ -146,19 +168,25 @@ export async function CatalogPage({ category, searchParams }: { category?: strin
               >
                 <ChevronLeftIcon />
               </Button>
-              {Array.from({ length: result.pageCount }, (_, i) => i + 1).map((n) => (
-                <Link
-                  key={n}
-                  href={pageHref(n)}
-                  aria-current={n === result.page ? 'page' : undefined}
-                  className={cn(
-                    'flex size-9 items-center justify-center rounded-md text-sm font-medium tabular hover:bg-muted',
-                    n === result.page && 'bg-brand-navy text-white hover:bg-brand-navy',
-                  )}
-                >
-                  {n}
-                </Link>
-              ))}
+              {pageWindow(result.page, result.pageCount).map((n, i) =>
+                n === 'gap' ? (
+                  <span key={`gap-${i}`} aria-hidden="true" className="px-1 text-muted-foreground">
+                    …
+                  </span>
+                ) : (
+                  <Link
+                    key={n}
+                    href={pageHref(n)}
+                    aria-current={n === result.page ? 'page' : undefined}
+                    className={cn(
+                      'flex size-9 items-center justify-center rounded-md text-sm font-medium tabular hover:bg-muted',
+                      n === result.page && 'bg-brand-navy text-white hover:bg-brand-navy',
+                    )}
+                  >
+                    {n}
+                  </Link>
+                ),
+              )}
               <Button
                 variant="outline"
                 size="icon-lg"

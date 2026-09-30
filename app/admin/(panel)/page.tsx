@@ -28,7 +28,7 @@ export default async function DashboardPage() {
     listAdminProducts({ status: 'agotados' }),
     getCurrentAdmin(),
   ])
-  const alerts = [...out, ...low].slice(0, 6)
+  const alerts = [...out.items, ...low.items].slice(0, 6)
   const usage = Math.min(100, (stats.productCount / stats.productLimit) * 100)
 
   return (

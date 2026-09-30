@@ -35,7 +35,21 @@ export interface AdminProductRow {
 
 export type ProductStatusFilter = 'todos' | 'activos' | 'inactivos' | 'stock-bajo' | 'agotados' | 'a-cotizar'
 
-export async function listAdminProducts(opts: { q?: string; category?: number; status?: ProductStatusFilter }) {
+export const ADMIN_PAGE_SIZE = 50
+
+export interface AdminProductPage {
+  items: AdminProductRow[]
+  total: number
+  page: number
+  pageCount: number
+}
+
+export async function listAdminProducts(opts: {
+  q?: string
+  category?: number
+  status?: ProductStatusFilter
+  page?: number
+}): Promise<AdminProductPage> {
   const sql = db()
   const conds = [sql`true`]
   const words = normalizeText(opts.q ?? '').split(' ').filter(Boolean).slice(0, 6)
@@ -63,17 +77,26 @@ export async function listAdminProducts(opts: { q?: string; category?: number; s
       break
   }
   const where = conds.reduce((acc, c) => sql`${acc} and ${c}`)
-  return sql<AdminProductRow[]>`
+  const page = Math.max(1, Math.floor(opts.page ?? 1))
+  const rows = await sql<(AdminProductRow & { totalCount: number })[]>`
     select p.id, p.slug, p.name, p.brand, p.sku, p.images[1] as image, p.category_id, p.pricing_mode, p.cost_price,
            p.markup_percent, p.volume_tiers, p.fixed_price, p.price, p.stock, p.reserved, p.track_inventory,
-           ${low} as low_stock_threshold, p.is_active, p.is_featured, p.source_available, sup.name as supplier_name
+           ${low} as low_stock_threshold, p.is_active, p.is_featured, p.source_available, sup.name as supplier_name,
+           count(*) over ()::int as total_count
     from public.products p
     cross join public.store_settings s
     left join public.suppliers sup on sup.id = p.supplier_id
     where ${where}
     order by p.is_active desc, p.name
-    limit 500
+    limit ${ADMIN_PAGE_SIZE} offset ${(page - 1) * ADMIN_PAGE_SIZE}
   `
+  const total = rows[0]?.totalCount ?? 0
+  return {
+    items: rows.map(({ totalCount: _, ...row }) => row),
+    total,
+    page,
+    pageCount: Math.max(1, Math.ceil(total / ADMIN_PAGE_SIZE)),
+  }
 }
 
 export interface AdminProductDetail extends AdminProductRow {
@@ -213,4 +236,28 @@ export async function deleteProduct(id: number) {
     throw new ProductError('Tiene unidades reservadas en pedidos abiertos. Cancela o confirma esos pedidos, o desactívalo.')
   }
   await db()`delete from public.products where id = ${id}`
+}
+
+export interface InventorySummary {
+  /** Unidades en bodega de los productos que controlan inventario. */
+  stock: number
+  reserved: number
+  /** Productos con unidades reservadas en pedidos abiertos. */
+  withReservations: { id: number; name: string; stock: number; reserved: number }[]
+}
+
+/** Totales del inventario calculados en la base: no depende de cuántos productos haya. */
+export async function getInventorySummary(): Promise<InventorySummary> {
+  const sql = db()
+  const [totals] = await sql<{ stock: number; reserved: number }[]>`
+    select coalesce(sum(stock), 0)::int as stock, coalesce(sum(reserved), 0)::int as reserved
+    from public.products where is_active and track_inventory
+  `
+  const withReservations = await sql<{ id: number; name: string; stock: number; reserved: number }[]>`
+    select id, name, stock, reserved from public.products
+    where is_active and track_inventory and reserved > 0
+    order by reserved desc, name
+    limit 100
+  `
+  return { ...totals, withReservations }
 }

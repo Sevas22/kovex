@@ -240,3 +240,59 @@ export function normalizeSupplierProduct(p: ShopifyProductJs): SupplierProduct {
     categoryPath: parseCategoryPath(p.tags, department),
   }
 }
+
+// ---------------------------------------------------------------------------
+// Catálogo completo
+// ---------------------------------------------------------------------------
+
+/** Ficha tal como la entrega /products.json (difiere de la de /products/{handle}.js). */
+interface ShopifyProductFeed {
+  id: number
+  title: string
+  handle: string
+  body_html: string
+  vendor: string
+  product_type: string
+  tags: string[]
+  variants: { sku: string | null; price: string; available: boolean }[]
+  images: { src: string }[]
+}
+
+/** Lleva la ficha del listado a la forma de la ficha individual, para normalizar una sola vez. */
+function fromFeed(p: ShopifyProductFeed): ShopifyProductJs {
+  const prices = p.variants.map((v) => Math.round(Number(v.price) * 100)).filter((n) => Number.isFinite(n) && n > 0)
+  return {
+    id: p.id,
+    title: p.title,
+    handle: p.handle,
+    description: p.body_html ?? '',
+    vendor: p.vendor,
+    type: p.product_type,
+    tags: p.tags ?? [],
+    price_min: prices.length ? Math.min(...prices) : 0,
+    available: p.variants.some((v) => v.available),
+    images: (p.images ?? []).map((i) => i.src),
+    variants: p.variants.map((v) => ({ sku: v.sku })),
+  }
+}
+
+export class SupplierBusyError extends Error {
+  constructor() {
+    super('El proveedor está limitando las peticiones.')
+    this.name = 'SupplierBusyError'
+  }
+}
+
+/**
+ * Una página del catálogo del proveedor (hasta 250 productos). Lanza SupplierBusyError
+ * cuando responde 429 o con su aviso de límite, para que quien llame espere y reintente.
+ */
+export async function fetchSupplierCatalogPage(page: number, limit = 250): Promise<SupplierProduct[]> {
+  const res = await fetchFromSupplier(`/products.json?limit=${limit}&page=${page}`, 'application/json')
+  if (res.status === 429 || res.status === 430 || res.status === 503) throw new SupplierBusyError()
+  if (!res.ok) throw new Error(`Texcomercial respondió ${res.status} al pedir la página ${page}.`)
+  const text = await res.text()
+  if (text.startsWith('local_rate_limited') || text.startsWith('<')) throw new SupplierBusyError()
+  const { products } = JSON.parse(text) as { products: ShopifyProductFeed[] }
+  return products.map((p) => normalizeSupplierProduct(fromFeed(p)))
+}

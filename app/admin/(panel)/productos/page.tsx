@@ -1,5 +1,6 @@
 import { DownloadCloudIcon, PlusIcon, SearchIcon } from 'lucide-react'
 import Link from 'next/link'
+import { AdminPagination } from '@/components/admin/pagination'
 import { PageHeader } from '@/components/admin/page-header'
 import { ProductActiveSwitch, ProductFeaturedToggle } from '@/components/admin/product-active-switch'
 import { ProductImage } from '@/components/store/product-image'
@@ -27,22 +28,29 @@ const FILTERS: { value: ProductStatusFilter; label: string }[] = [
   { value: 'agotados', label: 'Agotados' },
 ]
 
-export default async function ProductsPage({ searchParams }: { searchParams: Promise<{ estado?: string; q?: string }> }) {
+export default async function ProductsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ estado?: string; q?: string; pagina?: string }>
+}) {
   const sp = await searchParams
   const status = FILTERS.some((f) => f.value === sp.estado) ? (sp.estado as ProductStatusFilter) : 'todos'
   const q = sp.q?.trim() ?? ''
+  const pagina = Number(sp.pagina) || 1
   const [products, categories, settings] = await Promise.all([
-    listAdminProducts({ q, status }),
+    listAdminProducts({ q, status, page: pagina }),
     getCategories(),
     getSettings(),
   ])
   const index = buildCategoryIndex(categories)
+  const enlace = (n: number) =>
+    `/admin/productos?estado=${status}${q ? `&q=${encodeURIComponent(q)}` : ''}${n > 1 ? `&pagina=${n}` : ''}`
 
   return (
     <>
       <PageHeader
         title="Productos"
-        description={`${formatNumber(products.length)} en esta vista · el plan permite hasta ${formatNumber(settings.productLimit)} productos.`}
+        description={`${formatNumber(products.total)} en esta vista · el plan permite hasta ${formatNumber(settings.productLimit)} productos.`}
         actions={
           <>
             <Button variant="outline" size="lg" nativeButton={false} render={<Link href="/admin/importar" />}>
@@ -86,7 +94,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
 
       <Card>
         <CardContent>
-          {products.length === 0 ? (
+          {products.items.length === 0 ? (
             <Empty>
               <EmptyHeader>
                 <EmptyTitle>No hay productos en esta vista</EmptyTitle>
@@ -108,7 +116,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {products.map((p) => {
+                {products.items.map((p) => {
                   const breakdown = computePrice({
                     mode: p.pricingMode,
                     costPrice: p.costPrice,
@@ -176,6 +184,13 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
               </TableBody>
             </Table>
           )}
+          <AdminPagination
+            page={products.page}
+            pageCount={products.pageCount}
+            total={products.total}
+            label="productos"
+            href={enlace}
+          />
           <p className="mt-3 text-xs text-muted-foreground">* Margen heredado de la categoría o del margen general.</p>
         </CardContent>
       </Card>

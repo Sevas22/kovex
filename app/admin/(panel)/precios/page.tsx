@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { CategoryMarkupRowView } from '@/components/admin/category-markup-row'
 import { VolumeSettingsForm } from '@/components/admin/volume-settings-form'
 import { PageHeader } from '@/components/admin/page-header'
+import { AdminPagination } from '@/components/admin/pagination'
 import { PricingSettingsForm } from '@/components/admin/pricing-settings-form'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -15,11 +16,12 @@ import { getSettings } from '@/lib/server/settings'
 
 export const metadata = { title: 'Precios y márgenes' }
 
-export default async function PricingPage() {
+export default async function PricingPage({ searchParams }: { searchParams: Promise<{ pagina?: string }> }) {
+  const pagina = Number((await searchParams).pagina) || 1
   const [settings, rows, products, categories] = await Promise.all([
     getSettings(),
     getCategoryMarkupRows(),
-    listAdminProducts({ status: 'todos' }),
+    listAdminProducts({ status: 'todos', page: pagina }),
     getCategories(),
   ])
   const index = buildCategoryIndex(categories)
@@ -65,7 +67,8 @@ export default async function PricingPage() {
             <CardTitle>Margen por categoría</CardTitle>
             <CardDescription>
               Déjalo vacío para heredar. Un margen en un departamento aplica a todas sus subcategorías salvo que tengan uno
-              propio.
+              propio. Se muestran los departamentos y sus categorías directas; las subcategorías más profundas heredan de
+              ellas.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -113,7 +116,7 @@ export default async function PricingPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {products.map((p) => {
+                {products.items.map((p) => {
                   const inherited = index.inheritedMarkup(p.categoryId)
                   const b = computePrice({
                     mode: p.pricingMode,
@@ -159,6 +162,13 @@ export default async function PricingPage() {
                 })}
               </TableBody>
             </Table>
+            <AdminPagination
+              page={products.page}
+              pageCount={products.pageCount}
+              total={products.total}
+              label="productos"
+              href={(n) => (n > 1 ? `/admin/precios?pagina=${n}` : '/admin/precios')}
+            />
           </CardContent>
         </Card>
       </div>

@@ -11,7 +11,8 @@
     "db:seed": "tsx --env-file-if-exists=.env.local --conditions=react-server scripts/seed.ts",
     "admin:create": "tsx --env-file-if-exists=.env.local --conditions=react-server scripts/create-admin.ts",
     "catalog:sync": "tsx --env-file-if-exists=.env.local --conditions=react-server scripts/sync-supplier.ts",
-    "test": "tsx --conditions=react-server --test \"tests/**/*.test.ts\""
+    "test": "tsx --conditions=react-server --test \"tests/**/*.test.ts\"",
+    "catalog:import": "tsx --env-file-if-exists=.env.local --conditions=react-server scripts/import-catalog.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",

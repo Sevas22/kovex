@@ -48,7 +48,11 @@ export interface CategoryMarkupRow {
   productCount: number
 }
 
-export async function getCategoryMarkupRows(): Promise<CategoryMarkupRow[]> {
+/**
+ * Filas para la tabla de márgenes. Por defecto solo departamentos y sus hijas: más
+ * abajo el árbol del proveedor tiene cientos de hojas que heredan igual.
+ */
+export async function getCategoryMarkupRows(maxDepth = 1): Promise<CategoryMarkupRow[]> {
   const [categories, counts] = await Promise.all([
     getCategories(),
     db()<{ categoryId: number; count: number }[]>`
@@ -59,6 +63,7 @@ export async function getCategoryMarkupRows(): Promise<CategoryMarkupRow[]> {
   const direct = new Map(counts.map((c) => [c.categoryId, c.count]))
   const rows: CategoryMarkupRow[] = []
   const walk = (parentId: number | null, depth: number) => {
+    if (depth > maxDepth) return
     for (const c of index.childrenOf(parentId)) {
       const parentInherited = c.parentId == null ? null : index.inheritedMarkup(c.parentId)
       rows.push({

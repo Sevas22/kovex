@@ -19,6 +19,8 @@ export interface ImportOptions {
   /** % propio para los productos importados; null = heredar de la categoría o el general. */
   markupPercent: number | null
   initialStock: number
+  /** false = el producto se vende bajo pedido, sin control de inventario. */
+  trackInventory?: boolean
   isActive: boolean
   actor: string | null
 }
@@ -158,7 +160,7 @@ export async function importSupplierProducts(items: SupplierProduct[], opts: Imp
           markupPercent: opts.pricingMode === 'markup' ? opts.markupPercent : null,
           fixedPrice: opts.pricingMode === 'fixed' ? item.costPrice : null,
           taxRate: item.taxRate,
-          trackInventory: true,
+          trackInventory: opts.trackInventory ?? true,
           isActive: opts.isActive,
           supplierId: supplier.id,
           sourceId: item.sourceId,
@@ -169,7 +171,7 @@ export async function importSupplierProducts(items: SupplierProduct[], opts: Imp
         })}
         returning id
       `
-      await recordInitialStock(tx, row.id, opts.initialStock, opts.actor)
+      if (opts.trackInventory ?? true) await recordInitialStock(tx, row.id, opts.initialStock, opts.actor)
       productIds.push(row.id)
       created++
     }

@@ -1,9 +1,8 @@
 import type { CatalogFigures } from '@/lib/server/catalog'
 
-/** Redondea hacia abajo a la centena para no prometer de más: 2.776 → «+2.700». */
+/** Cifra exacta con separador de miles: 1999 → «1.999». */
 function bigNumber(value: number): string {
-  if (value < 100) return String(value)
-  return `+${(Math.floor(value / 100) * 100).toLocaleString('es-CO')}`
+  return value.toLocaleString('es-CO')
 }
 
 /**

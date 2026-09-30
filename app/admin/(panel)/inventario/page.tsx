@@ -4,23 +4,18 @@ import { PageHeader } from '@/components/admin/page-header'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { formatNumber } from '@/lib/format'
-import { listAdminProducts } from '@/lib/server/admin-products'
+import { getInventorySummary } from '@/lib/server/admin-products'
 import { getDashboardStats, listMovements } from '@/lib/server/order-queries'
 
 export const metadata = { title: 'Inventario' }
 
 export default async function InventoryPage() {
-  const [movements, products, stats] = await Promise.all([
+  const [movements, inventory, stats] = await Promise.all([
     listMovements({ limit: 100 }),
-    listAdminProducts({ status: 'activos' }),
+    getInventorySummary(),
     getDashboardStats(),
   ])
-  const tracked = products.filter((p) => p.trackInventory)
-  const totals = tracked.reduce(
-    (acc, p) => ({ stock: acc.stock + p.stock, reserved: acc.reserved + p.reserved }),
-    { stock: 0, reserved: 0 },
-  )
-  const withReservations = tracked.filter((p) => p.reserved > 0)
+  const { withReservations } = inventory
 
   return (
     <>
@@ -31,9 +26,9 @@ export default async function InventoryPage() {
 
       <div className="mb-6 grid gap-4 sm:grid-cols-4">
         {[
-          ['Unidades en bodega', totals.stock],
-          ['Reservadas', totals.reserved],
-          ['Disponibles para vender', totals.stock - totals.reserved],
+          ['Unidades en bodega', inventory.stock],
+          ['Reservadas', inventory.reserved],
+          ['Disponibles para vender', inventory.stock - inventory.reserved],
           ['Productos agotados', stats.outOfStock],
         ].map(([label, value]) => (
           <Card key={label} className="gap-1">

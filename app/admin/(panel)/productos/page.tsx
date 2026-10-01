@@ -26,6 +26,7 @@ const FILTERS: { value: ProductStatusFilter; label: string }[] = [
   { value: 'a-cotizar', label: 'A cotizar' },
   { value: 'stock-bajo', label: 'Stock bajo' },
   { value: 'agotados', label: 'Agotados' },
+  { value: 'sin-imagen', label: 'Sin foto' },
 ]
 
 export default async function ProductsPage({

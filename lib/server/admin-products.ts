@@ -33,7 +33,14 @@ export interface AdminProductRow {
   supplierName: string | null
 }
 
-export type ProductStatusFilter = 'todos' | 'activos' | 'inactivos' | 'stock-bajo' | 'agotados' | 'a-cotizar'
+export type ProductStatusFilter =
+  | 'todos'
+  | 'activos'
+  | 'inactivos'
+  | 'stock-bajo'
+  | 'agotados'
+  | 'a-cotizar'
+  | 'sin-imagen'
 
 export const ADMIN_PAGE_SIZE = 50
 
@@ -74,6 +81,9 @@ export async function listAdminProducts(opts: {
       break
     case 'a-cotizar':
       conds.push(sql`p.price is null`)
+      break
+    case 'sin-imagen':
+      conds.push(sql`cardinality(p.images) = 0`)
       break
   }
   const where = conds.reduce((acc, c) => sql`${acc} and ${c}`)

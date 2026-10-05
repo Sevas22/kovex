@@ -23,8 +23,10 @@ export interface StoredUpload {
 }
 
 /**
- * Reescala y convierte a WebP si hay soporte disponible. sharp viene con Next, pero
- * si algún día no está, se guarda el archivo original sin transformar.
+ * Reescala y convierte a WebP si hay soporte disponible. sharp va declarado en
+ * package.json a propósito: Next lo trae como dependencia opcional suya, pero esa
+ * no queda expuesta al proyecto y el build falla al resolver el import.
+ * Si aun así no estuviera, se guarda el archivo original sin transformar.
  */
 async function optimize(
   buffer: Buffer,

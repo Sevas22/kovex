@@ -17,7 +17,7 @@ export function CinemaScroll({ whatsappUrl }: { whatsappUrl: string }) {
       <div className="sticky top-0 h-svh overflow-hidden">
         <div className="scrolly-frame cinema-frame absolute overflow-hidden">
           <Image
-            src="/brand/camion.jpg"
+            src="/brand/camion.webp"
             alt="Camión de distribución de KOVEX Colombia listo para despachar"
             fill
             sizes="100vw"

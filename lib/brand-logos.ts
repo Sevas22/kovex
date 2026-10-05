@@ -9,15 +9,15 @@ import { slugify } from './text'
 
 /** Slug de la marca → archivo dentro de /public/marcas. */
 export const BRAND_LOGOS: Record<string, string> = {
-  samsung: '/marcas/samsung.png',
+  samsung: '/marcas/samsung.webp',
   corona: '/marcas/corona.svg',
   hyundai: '/marcas/hyundai.svg',
-  grival: '/marcas/grival.png',
+  grival: '/marcas/grival.webp',
   haceb: '/marcas/haceb.png',
-  colplast: '/marcas/colplast.png',
+  colplast: '/marcas/colplast.webp',
   duragro: '/marcas/duragro.png',
   rimax: '/marcas/rimax.png',
-  oster: '/marcas/oster.png',
+  oster: '/marcas/oster.webp',
 }
 
 /** Marcas cuyo logotipo es claro y necesita fondo oscuro para leerse. */

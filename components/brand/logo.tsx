@@ -3,10 +3,10 @@ import { cn } from '@/lib/utils'
 
 // Recortes del manual de marca (versión horizontal, negativa y monograma).
 const LOGOS = {
-  horizontal: { src: '/brand/logo-horizontal.png', width: 1019, height: 260 },
-  negative: { src: '/brand/logo-negativo.png', width: 799, height: 239 },
-  mark: { src: '/brand/monograma.png', width: 391, height: 448 },
-  markNegative: { src: '/brand/monograma-negativo.png', width: 191, height: 239 },
+  horizontal: { src: '/brand/logo-horizontal.webp', width: 620, height: 158 },
+  negative: { src: '/brand/logo-negativo.webp', width: 620, height: 186 },
+  mark: { src: '/brand/monograma.webp', width: 391, height: 448 },
+  markNegative: { src: '/brand/monograma-negativo.webp', width: 191, height: 239 },
 } as const
 
 interface LogoProps {

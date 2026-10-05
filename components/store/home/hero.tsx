@@ -70,7 +70,7 @@ export function Hero({ whatsappUrl, categories = [] }: { whatsappUrl: string; ca
           <div className="anim-wipe absolute inset-0">
             <div className="parallax absolute inset-x-0 -inset-y-[6%] lg:[clip-path:polygon(22%_0,100%_0,100%_100%,0_100%)]">
               <Image
-                src="/brand/fachada.jpg"
+                src="/brand/fachada.webp"
                 alt="Sede de KOVEX Colombia con camión de distribución"
                 fill
                 priority

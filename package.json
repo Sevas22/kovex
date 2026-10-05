@@ -13,7 +13,8 @@
     "catalog:sync": "tsx --env-file-if-exists=.env.local --conditions=react-server scripts/sync-supplier.ts",
     "test": "tsx --conditions=react-server --test \"tests/**/*.test.ts\"",
     "catalog:import": "tsx --env-file-if-exists=.env.local --conditions=react-server scripts/import-catalog.ts",
-    "catalog:fix-images": "tsx --env-file-if-exists=.env.local --conditions=react-server scripts/fix-images.ts"
+    "catalog:fix-images": "tsx --env-file-if-exists=.env.local --conditions=react-server scripts/fix-images.ts",
+    "db:copy": "tsx --env-file-if-exists=.env.local --conditions=react-server scripts/copy-to-remote.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",

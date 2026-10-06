@@ -39,6 +39,7 @@ export function SiteFooter({ departments, store }: { departments: CategoryLink[]
               ['/#mision', 'Misión, visión y valores'],
               ['/#como-comprar', 'Cómo comprar por WhatsApp'],
               ['/#preguntas', 'Preguntas frecuentes'],
+              ['/blog', 'Blog'],
               ['/catalogo', 'Catálogo completo'],
               ['/pedido', 'Mi pedido'],
             ].map(([href, label]) => (

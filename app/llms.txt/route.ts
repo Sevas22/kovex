@@ -1,3 +1,4 @@
+import { POSTS } from '@/lib/blog'
 import { COMPANY } from '@/lib/company'
 import { getBrands, getCatalogFigures, getDepartments } from '@/lib/server/catalog'
 import { getPublicStoreInfo } from '@/lib/server/settings'
@@ -54,9 +55,14 @@ export async function GET() {
     '',
     `- [Inicio](${site}/)`,
     `- [Catálogo completo](${site}/catalogo)`,
+    `- [Blog](${site}/blog) — guías sobre compra al por mayor`,
     `- [Cómo comprar por WhatsApp](${site}/#como-comprar)`,
     `- [Preguntas frecuentes](${site}/#preguntas)`,
     `- [Quiénes somos](${site}/#nosotros)`,
+    '',
+    '## Artículos del blog',
+    '',
+    ...POSTS.map((p) => `- [${p.titulo}](${site}/blog/${p.slug}): ${p.resumen}`),
     '',
     '## Preguntas frecuentes',
     '',

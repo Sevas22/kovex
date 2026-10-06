@@ -43,6 +43,7 @@ export function MobileNav({ departments, whatsappUrl }: { departments: CategoryL
             ['/#nosotros', 'Nosotros'],
             ['/#como-comprar', 'Cómo comprar'],
             ['/#preguntas', 'Preguntas frecuentes'],
+            ['/blog', 'Blog'],
           ].map(([href, label]) => (
             <Link key={href} href={href} onClick={close} className="rounded-md px-3 py-3 text-sm hover:bg-muted">
               {label}

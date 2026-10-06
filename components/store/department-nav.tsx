@@ -40,11 +40,14 @@ export function DepartmentNav({ departments }: { departments: CategoryLink[] }) 
           })}
         </ul>
         <div className="ml-auto hidden items-stretch lg:flex">
-          <Link href="/#nosotros" className="flex items-center px-3 text-sm text-white/70 hover:text-white">
+          <Link href="/#nosotros" className="flex items-center px-3 text-sm whitespace-nowrap text-white/70 hover:text-white">
             Nosotros
           </Link>
-          <Link href="/#como-comprar" className="flex items-center px-3 text-sm text-white/70 hover:text-white">
+          <Link href="/#como-comprar" className="flex items-center px-3 text-sm whitespace-nowrap text-white/70 hover:text-white">
             Cómo comprar
+          </Link>
+          <Link href="/blog" className="flex items-center px-3 text-sm whitespace-nowrap text-white/70 hover:text-white">
+            Blog
           </Link>
         </div>
       </div>

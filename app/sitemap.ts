@@ -1,4 +1,5 @@
 import type { MetadataRoute } from 'next'
+import { POSTS } from '@/lib/blog'
 import { getCategoryIndex } from '@/lib/server/categories'
 import { db } from '@/lib/server/db'
 import { getSiteUrl } from '@/lib/server/site-url'
@@ -23,6 +24,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
     { url: `${site}/`, changeFrequency: 'daily', priority: 1 },
     { url: `${site}/catalogo`, changeFrequency: 'daily', priority: 0.9 },
+    { url: `${site}/blog`, changeFrequency: 'weekly', priority: 0.7 },
+    ...POSTS.map((p) => ({
+      url: `${site}/blog/${p.slug}`,
+      lastModified: new Date(`${p.fecha}T12:00:00`),
+      changeFrequency: 'monthly' as const,
+      priority: 0.6,
+    })),
     ...categories.map((c) => ({
       url: `${site}/catalogo/${c.slug}`,
       changeFrequency: 'weekly' as const,

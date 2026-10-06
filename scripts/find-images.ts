@@ -18,9 +18,19 @@ const aplicar = process.argv.includes('--aplicar')
 const UA = { 'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/128.0 Safari/537.36' }
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
-/** Tiendas Shopify oficiales con catálogo público, por marca. */
+/**
+ * Tiendas Shopify oficiales con catálogo público, por marca. La clave tiene que
+ * coincidir con `products.brand` tal como la guardó el importador.
+ *
+ * De las marcas que nos faltan, estas son las únicas con catálogo consultable:
+ * el resto (Corona, Grival, Abracol, Plastired, Proalco, Rimax, Oster, Imusa,
+ * Mercury, Tracker, Winner, Electrolux) o no tiene tienda propia o no expone el
+ * catálogo. Para esas hay que conseguir las fotos por otra vía.
+ */
 const TIENDAS: Record<string, string> = {
   Hyundai: 'https://hyundaielectronics.com.co',
+  Cristar: 'https://cristar.com.co',
+  Colplast: 'https://colplast.com.co',
 }
 
 interface Candidato {

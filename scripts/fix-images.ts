@@ -24,9 +24,15 @@ interface Row {
   sourceUrl: string | null
 }
 
+/** Una foto guardada en la tienda, no enlazada al CDN del proveedor. */
+const esPropia = (url: string) => url.startsWith('/imagenes/')
+
 /** true si todas las imágenes del producto responden. */
 async function imagesOk(images: string[]): Promise<boolean> {
   for (const url of images) {
+    // Las nuestras viven en la base de datos y se sirven con una ruta relativa:
+    // no se pueden pedir con fetch desde aquí, y pedirlas las daría por rotas.
+    if (esPropia(url)) continue
     try {
       const res = await fetch(url, { method: 'HEAD', signal: AbortSignal.timeout(15_000) })
       if (!res.ok) return false
@@ -75,9 +81,12 @@ async function enParalelo<T>(items: T[], workers: number, tarea: (item: T) => Pr
 
 async function main() {
   const sql = db()
+  // Los productos cuya foto ya guardamos nosotros quedan fuera: no dependen del
+  // proveedor y pedirle un reemplazo solo serviría para perder la que tenemos.
   const productos = await sql<Row[]>`
     select id, name, images, source_url from public.products
     where cardinality(images) > 0 and source_url is not null
+      and not exists (select 1 from unnest(images) img where img like '/imagenes/%')
     order by id
   `
   console.log(`Revisando las fotos de ${productos.length} productos…`)

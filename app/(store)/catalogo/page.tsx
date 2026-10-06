@@ -5,6 +5,8 @@ import type { SearchParams } from '@/lib/catalog-params'
 export const metadata: Metadata = {
   title: 'Catálogo',
   description: 'Catálogo mayorista de ferretería, agro, hogar, maquinaria, tecnología y electro.',
+  // Las 84 páginas y los filtros viajan en la consulta: todas apuntan aquí.
+  alternates: { canonical: '/catalogo' },
 }
 
 export default async function CatalogoPage({ searchParams }: { searchParams: Promise<SearchParams> }) {

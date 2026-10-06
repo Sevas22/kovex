@@ -12,7 +12,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { categoria } = await params
   const category = (await getCategoryIndex()).bySlug.get(categoria)
   return category
-    ? { title: category.name, description: category.description ?? `${category.name} al por mayor en KOVEX Colombia.` }
+    ? {
+        title: category.name,
+        description: category.description ?? `${category.name} al por mayor en KOVEX Colombia.`,
+        // Sin canónica, cada combinación de filtros y de página sería una URL
+        // distinta con el mismo contenido.
+        alternates: { canonical: `/catalogo/${categoria}` },
+      }
     : { title: 'Categoría no encontrada' }
 }
 

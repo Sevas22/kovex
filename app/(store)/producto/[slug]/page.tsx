@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/breadcrumb'
 import { Table, TableBody, TableCell, TableHead, TableRow } from '@/components/ui/table'
 import { getProductBySlug, getRelatedProducts } from '@/lib/server/catalog'
+import { getSiteUrl } from '@/lib/server/site-url'
 import { getPublicStoreInfo } from '@/lib/server/settings'
 import { whatsappLink } from '@/lib/whatsapp'
 
@@ -35,16 +36,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: product.name,
     description: product.description?.slice(0, 160) ?? `${product.name} al por mayor en KOVEX Colombia.`,
+    // Canónica: la ficha se alcanza desde varias categorías y búsquedas, y sin
+    // esto cada ruta de llegada cuenta como una página distinta.
+    alternates: { canonical: `/producto/${slug}` },
     openGraph: { images: product.images.slice(0, 1) },
   }
 }
 
 export default async function ProductPage({ params }: Props) {
   const { slug } = await params
-  const [product, related, store] = await Promise.all([
+  const [product, related, store, site] = await Promise.all([
     getProductBySlug(slug),
     getRelatedProducts(slug),
     getPublicStoreInfo(),
+    getSiteUrl(),
   ])
   if (!product) notFound()
 
@@ -81,6 +86,30 @@ export default async function ProductPage({ params }: Props) {
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 md:py-10">
       <JsonLd data={productJsonLd} />
+
+      {/* La ruta Catálogo › Categoría › Producto, que el buscador muestra bajo
+          el título en vez de la URL cruda. */}
+      <JsonLd
+        data={{
+          '@context': 'https://schema.org',
+          '@type': 'BreadcrumbList',
+          itemListElement: [
+            { '@type': 'ListItem', position: 1, name: 'Catálogo', item: `${site}/catalogo` },
+            ...product.breadcrumbs.map((c, i) => ({
+              '@type': 'ListItem',
+              position: i + 2,
+              name: c.name,
+              item: `${site}/catalogo/${c.slug}`,
+            })),
+            {
+              '@type': 'ListItem',
+              position: product.breadcrumbs.length + 2,
+              name: product.name,
+              item: `${site}/producto/${slug}`,
+            },
+          ],
+        }}
+      />
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>

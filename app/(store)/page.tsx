@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { LayersIcon, MessageCircleIcon, TagIcon } from 'lucide-react'
 import { AboutSection } from '@/components/store/home/about-section'
 import { Audiences } from '@/components/store/home/audiences'
@@ -50,6 +51,8 @@ const PROMISE_WORDS = [
   'Un solo proveedor',
 ]
 
+export const metadata: Metadata = { alternates: { canonical: '/' } }
+
 export default async function HomePage() {
   const [departments, featured, brands, store, figures] = await Promise.all([
     getDepartments(),
@@ -67,14 +70,23 @@ export default async function HomePage() {
       <JsonLd
         data={{
           '@context': 'https://schema.org',
-          '@type': 'Organization',
+          // Un mayorista con sede física: Store hereda de LocalBusiness, que es
+          // lo que leen los buscadores para las búsquedas con intención local.
+          '@type': 'Store',
+          '@id': `${site}/#organizacion`,
           name: store.businessName,
           url: site,
           logo: `${site}/brand/logo-horizontal.png`,
+          image: `${site}/brand/fachada.jpg`,
           description: COMPANY.about,
           slogan: COMPANY.slogan,
           email: store.contactEmail,
+          telephone: `+${store.whatsappNumber}`,
+          priceRange: '$$',
+          currenciesAccepted: 'COP',
           address: { '@type': 'PostalAddress', addressLocality: store.city, addressCountry: 'CO' },
+          areaServed: { '@type': 'Country', name: 'Colombia' },
+          knowsLanguage: 'es-CO',
           contactPoint: {
             '@type': 'ContactPoint',
             telephone: `+${store.whatsappNumber}`,
@@ -82,6 +94,42 @@ export default async function HomePage() {
             areaServed: 'CO',
             availableLanguage: 'es',
           },
+          department: departments.map((d) => ({
+            '@type': 'Store',
+            name: d.name,
+            url: `${site}/catalogo/${d.slug}`,
+          })),
+        }}
+      />
+
+      {/* Habilita la caja de búsqueda de Google dentro del resultado del sitio */}
+      <JsonLd
+        data={{
+          '@context': 'https://schema.org',
+          '@type': 'WebSite',
+          '@id': `${site}/#sitio`,
+          url: site,
+          name: store.businessName,
+          inLanguage: 'es-CO',
+          publisher: { '@id': `${site}/#organizacion` },
+          potentialAction: {
+            '@type': 'SearchAction',
+            target: { '@type': 'EntryPoint', urlTemplate: `${site}/catalogo?q={search_term_string}` },
+            'query-input': 'required name=search_term_string',
+          },
+        }}
+      />
+
+      {/* Las preguntas frecuentes, en el formato que citan los asistentes de IA */}
+      <JsonLd
+        data={{
+          '@context': 'https://schema.org',
+          '@type': 'FAQPage',
+          mainEntity: COMPANY.faq.map((f) => ({
+            '@type': 'Question',
+            name: f.q,
+            acceptedAnswer: { '@type': 'Answer', text: f.a },
+          })),
         }}
       />
       <Hero whatsappUrl={quoteUrl} categories={departments.map((d) => d.name)} />

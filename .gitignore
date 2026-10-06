@@ -16,3 +16,6 @@ node_modules
 # Artefactos de compilación
 tsconfig.tsbuildinfo
 *.log
+
+# Base de datos local de pruebas: el cluster se escribe dentro del proyecto.
+data/

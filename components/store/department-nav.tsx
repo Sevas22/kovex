@@ -1,6 +1,6 @@
 'use client'
 
-import { LayoutGridIcon } from 'lucide-react'
+import { LayoutGridIcon, LockIcon } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import type { CategoryLink } from '@/lib/types'
@@ -48,6 +48,17 @@ export function DepartmentNav({ departments }: { departments: CategoryLink[] }) 
           </Link>
           <Link href="/blog" className="flex items-center px-3 text-sm whitespace-nowrap text-white/70 hover:text-white">
             Blog
+          </Link>
+          {/* Atajo al panel para el equipo de KOVEX. Discreto a propósito: la
+              contraseña es la que protege, pero no hace falta anunciar la puerta.
+              /admin ya está excluido en robots.txt. */}
+          <Link
+            href="/admin"
+            title="Panel administrativo"
+            aria-label="Panel administrativo"
+            className="flex items-center border-l border-white/10 pr-1 pl-3 text-white/40 transition-colors hover:text-brand-cyan"
+          >
+            <LockIcon className="size-4" strokeWidth={1.8} aria-hidden="true" />
           </Link>
         </div>
       </div>

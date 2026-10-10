@@ -54,6 +54,7 @@ export function ProductForm({ product, categories, pricing }: ProductFormProps) 
   const [taxRate, setTaxRate] = useState(toText(product?.taxRate ?? 19))
   const [trackInventory, setTrackInventory] = useState(product?.trackInventory ?? true)
   const [lowStock, setLowStock] = useState(toText(product?.ownLowStockThreshold))
+  const [minOrder, setMinOrder] = useState(toText(product?.minOrderQuantity ?? 1))
   const [initialStock, setInitialStock] = useState('')
   const [isActive, setIsActive] = useState(product?.isActive ?? true)
   const [isFeatured, setIsFeatured] = useState(product?.isFeatured ?? false)
@@ -104,6 +105,7 @@ export function ProductForm({ product, categories, pricing }: ProductFormProps) 
       taxRate: toDecimal(taxRate) ?? 19,
       trackInventory,
       lowStockThreshold: toInt(lowStock),
+      minOrderQuantity: Math.max(1, toInt(minOrder) ?? 1),
       volumeTiers: tiers,
       isActive,
       isFeatured,
@@ -343,6 +345,20 @@ export function ProductForm({ product, categories, pricing }: ProductFormProps) 
                   <Input id="p-low" inputMode="numeric" value={lowStock} onChange={(e) => setLowStock(e.target.value.replace(/\D/g, ''))} placeholder="Usa el valor general" />
                 </Field>
               ) : null}
+              <Field>
+                <FieldLabel htmlFor="p-min">Cantidad mínima de venta</FieldLabel>
+                <Input
+                  id="p-min"
+                  inputMode="numeric"
+                  value={minOrder}
+                  onChange={(e) => setMinOrder(e.target.value.replace(/\D/g, ''))}
+                  placeholder="1"
+                />
+                <FieldDescription>
+                  Unidades mínimas por pedido. Déjalo en 1 si se puede comprar de a una. Ejemplo: una cinta que
+                  solo se despacha por paquete de 12.
+                </FieldDescription>
+              </Field>
               <Field orientation="horizontal">
                 <Switch id="p-active" checked={isActive} onCheckedChange={setIsActive} />
                 <FieldLabel htmlFor="p-active">Visible en la tienda</FieldLabel>

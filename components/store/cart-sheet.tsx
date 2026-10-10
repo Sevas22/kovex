@@ -57,6 +57,7 @@ export function CartSheet() {
                     <QuantityStepper
                       value={quantity}
                       allowZero
+                      minQuantity={product.minOrderQuantity}
                       onChange={(q) => setQuantity(product.id, q)}
                       label={`Cantidad de ${product.name}`}
                     />

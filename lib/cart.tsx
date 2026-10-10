@@ -37,9 +37,13 @@ function readSaved(): CartItem[] {
   }
 }
 
-function clampQuantity(q: number) {
-  return Math.max(1, Math.min(MAX_QUANTITY, Math.floor(q)))
+/** Acota la cantidad al mínimo de venta del producto y al tope del carrito. */
+function clampQuantity(q: number, min = 1) {
+  return Math.max(Math.max(1, min), Math.min(MAX_QUANTITY, Math.floor(q)))
 }
+
+/** Mínimo de venta del producto, tolerando datos viejos del almacenamiento local. */
+const minimoDe = (p: ProductSummary) => Math.max(1, Math.floor(p.minOrderQuantity ?? 1))
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([])
@@ -61,7 +65,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
         setItems((prev) =>
           prev.flatMap((i) => {
             const product = byId.get(i.product.id)
-            return product ? [{ product, quantity: i.quantity }] : []
+            // Si el mínimo cambió en el panel desde la última visita, la cantidad
+            // guardada sube sola en vez de fallar al enviar el pedido.
+            return product ? [{ product, quantity: clampQuantity(i.quantity, minimoDe(product)) }] : []
           }),
         )
       })
@@ -89,11 +95,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const add = useCallback((product: ProductSummary, quantity = 1) => {
+    const min = minimoDe(product)
     setItems((prev) => {
       const existing = prev.find((i) => i.product.id === product.id)
-      if (!existing) return [...prev, { product, quantity: clampQuantity(quantity) }]
+      // La primera vez entra directo en el mínimo: pedir 1 de algo que se vende
+      // de a 12 solo serviría para que el servidor lo rechace al final.
+      if (!existing) return [...prev, { product, quantity: clampQuantity(quantity, min) }]
       return prev.map((i) =>
-        i.product.id === product.id ? { product, quantity: clampQuantity(i.quantity + quantity) } : i,
+        i.product.id === product.id ? { product, quantity: clampQuantity(i.quantity + quantity, min) } : i,
       )
     })
   }, [])
@@ -102,7 +111,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems((prev) =>
       quantity <= 0
         ? prev.filter((i) => i.product.id !== productId)
-        : prev.map((i) => (i.product.id === productId ? { ...i, quantity: clampQuantity(quantity) } : i)),
+        : prev.map((i) =>
+            i.product.id === productId ? { ...i, quantity: clampQuantity(quantity, minimoDe(i.product)) } : i,
+          ),
     )
   }, [])
 

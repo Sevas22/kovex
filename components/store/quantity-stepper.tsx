@@ -10,13 +10,26 @@ interface QuantityStepperProps {
   onChange: (value: number) => void
   /** Permite bajar a 0 (para quitar del carrito). */
   allowZero?: boolean
+  /** Cantidad mínima de venta del producto. 1 = sin mínimo. */
+  minQuantity?: number
   size?: 'sm' | 'lg'
   label: string
   className?: string
 }
 
-export function QuantityStepper({ value, onChange, allowZero, size = 'sm', label, className }: QuantityStepperProps) {
-  const min = allowZero ? 0 : 1
+export function QuantityStepper({
+  value,
+  onChange,
+  allowZero,
+  minQuantity = 1,
+  size = 'sm',
+  label,
+  className,
+}: QuantityStepperProps) {
+  const minimo = Math.max(1, Math.floor(minQuantity))
+  // Con mínimo de venta no se baja a 0 desde aquí: el renglón se quita con su
+  // propio botón, que es más claro que verlo desaparecer al restar uno.
+  const min = allowZero && minimo === 1 ? 0 : minimo
   const buttonSize = size === 'lg' ? 'icon-xl' : 'icon-sm'
   return (
     <div className={cn('inline-flex items-center rounded-md border bg-background', className)} role="group" aria-label={label}>

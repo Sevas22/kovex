@@ -41,6 +41,7 @@ const product = (p: Partial<ProductSummary>): ProductSummary => ({
   priceTiers: [],
   available: 10,
   lowStockThreshold: 5,
+  minOrderQuantity: 1,
   isFeatured: false,
   ...p,
 })

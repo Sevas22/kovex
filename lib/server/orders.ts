@@ -6,6 +6,7 @@ import { priceTiersFor } from './product-pricing'
 import { loadSettings } from './settings'
 import { priceLine } from '@/lib/volume-pricing'
 import { normalizePhone } from '@/lib/text'
+import { unitLabel } from '@/lib/units'
 import type { CartLine, CustomerInput, OrderKind, OrderStatus, StockState } from '@/lib/types'
 
 export class OrderError extends Error {
@@ -41,6 +42,7 @@ interface ProductForOrder {
   costPrice: number | null
   volumeTiers: unknown
   categoryId: number | null
+  minOrderQuantity: number
 }
 
 export async function createOrder(input: {
@@ -54,7 +56,7 @@ export async function createOrder(input: {
   return db().begin(async (tx) => {
     const products = await tx<ProductForOrder[]>`
       select id, name, sku, images[1] as image, unit, price, is_active,
-             cost_price, volume_tiers, category_id
+             cost_price, volume_tiers, category_id, min_order_quantity
       from public.products
       where id = any(${ids})
       order by id
@@ -63,6 +65,20 @@ export async function createOrder(input: {
     const unavailable = input.items.filter((i) => !byId.get(i.productId)?.isActive)
     if (unavailable.length) {
       throw new OrderError('Algunos productos de tu lista ya no están disponibles. Revisa tu pedido e inténtalo de nuevo.')
+    }
+
+    // El mínimo también se revisa aquí: el navegador lo respeta, pero un pedido
+    // puede llegar por fuera de la interfaz.
+    const bajoMinimo = input.items.flatMap((i) => {
+      const p = byId.get(i.productId)
+      return p && i.quantity < p.minOrderQuantity ? [{ p, pedida: i.quantity }] : []
+    })
+    if (bajoMinimo.length) {
+      throw new OrderError(
+        bajoMinimo
+          .map(({ p }) => `${p.name} se vende desde ${p.minOrderQuantity} ${unitLabel(p.unit, p.minOrderQuantity)}`)
+          .join('. ') + '. Ajusta las cantidades e inténtalo de nuevo.',
+      )
     }
 
     if (input.kind === 'order') {

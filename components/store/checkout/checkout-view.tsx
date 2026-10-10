@@ -153,6 +153,7 @@ export function CheckoutView() {
                     <div className="flex items-center justify-between gap-3">
                       <QuantityStepper
                         value={quantity}
+                        minQuantity={product.minOrderQuantity}
                         onChange={(q) => setQuantity(product.id, q)}
                         label={`Cantidad de ${product.name}`}
                       />

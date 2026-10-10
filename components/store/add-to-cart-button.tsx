@@ -10,6 +10,7 @@ import type { ProductSummary } from '@/lib/types'
 export function AddToCartButton({ product }: { product: ProductSummary }) {
   const { add, setOpen } = useCart()
   const forQuote = product.price == null || product.available === 0
+  const minimo = Math.max(1, Math.floor(product.minOrderQuantity ?? 1))
 
   return (
     <Button
@@ -17,9 +18,11 @@ export function AddToCartButton({ product }: { product: ProductSummary }) {
       className="chamfer chamfer-sm shrink-0"
       aria-label={`${forQuote ? 'Agregar a la cotización' : 'Agregar al pedido'}: ${product.name}`}
       onClick={() => {
-        add(product, 1)
+        add(product, minimo)
         toast.success(forQuote ? 'Agregado para cotizar' : 'Agregado a tu pedido', {
-          description: product.name,
+          // Con mínimo de venta se avisa por qué entraron varias y no una.
+          description:
+            minimo > 1 ? `${minimo} × ${product.name} · pedido mínimo` : product.name,
           action: { label: 'Ver pedido', onClick: () => setOpen(true) },
         })
       }}

@@ -40,6 +40,7 @@ function summaryColumns() {
     p.cost_price, p.volume_tiers, p.category_id,
     case when p.track_inventory then p.stock - p.reserved end as available,
     coalesce(p.low_stock_threshold, s.low_stock_threshold) as low_stock_threshold,
+    p.min_order_quantity,
     p.is_featured
   `
 }

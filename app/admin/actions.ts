@@ -159,6 +159,7 @@ const productSchema = z
     taxRate: z.number().min(0).max(100),
     trackInventory: z.boolean(),
     lowStockThreshold: z.number().int().min(0).max(100000).nullable(),
+    minOrderQuantity: z.number().int().min(1).max(9999),
     isActive: z.boolean(),
     isFeatured: z.boolean(),
   })

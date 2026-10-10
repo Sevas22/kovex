@@ -27,6 +27,7 @@ export interface AdminProductRow {
   reserved: number
   trackInventory: boolean
   lowStockThreshold: number
+  minOrderQuantity: number
   isActive: boolean
   isFeatured: boolean
   sourceAvailable: boolean | null
@@ -131,7 +132,7 @@ export async function getAdminProduct(id: number): Promise<AdminProductDetail | 
     select p.id, p.slug, p.name, p.brand, p.sku, p.images[1] as image, p.category_id, p.pricing_mode, p.cost_price,
            p.markup_percent, p.volume_tiers, p.fixed_price, p.price, p.stock, p.reserved, p.track_inventory,
            coalesce(p.low_stock_threshold, s.low_stock_threshold) as low_stock_threshold,
-           p.low_stock_threshold as own_low_stock_threshold,
+           p.low_stock_threshold as own_low_stock_threshold, p.min_order_quantity,
            p.is_active, p.is_featured, p.source_available, sup.name as supplier_name,
            p.description, p.specs, p.images, p.unit, p.tax_rate, p.compare_at_price, p.source_url, p.source_synced_at,
            p.created_at, p.updated_at
@@ -162,6 +163,8 @@ export interface ProductInput {
   taxRate: number
   trackInventory: boolean
   lowStockThreshold: number | null
+  /** Unidades mínimas por pedido. 1 = sin mínimo. */
+  minOrderQuantity: number
   isActive: boolean
   isFeatured: boolean
 }
@@ -199,6 +202,7 @@ export async function saveProduct(id: number | null, input: ProductInput, opts: 
       taxRate: input.taxRate,
       trackInventory: input.trackInventory,
       lowStockThreshold: input.lowStockThreshold,
+      minOrderQuantity: input.minOrderQuantity,
       isActive: input.isActive,
       isFeatured: input.isFeatured,
       // Con precio fijo o a cotizar el precio se asigna abajo; "quote" exige price null.

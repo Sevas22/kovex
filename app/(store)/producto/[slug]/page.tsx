@@ -167,6 +167,7 @@ export default async function ProductPage({ params }: Props) {
               compareAtPrice: product.compareAtPrice,
               available: product.available,
               lowStockThreshold: product.lowStockThreshold,
+              minOrderQuantity: product.minOrderQuantity,
               isFeatured: product.isFeatured,
               priceTiers: product.priceTiers,
             }}

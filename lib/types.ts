@@ -77,6 +77,8 @@ export interface ProductSummary {
   /** Unidades disponibles (stock - reservado); null = no controla inventario. */
   available: number | null
   lowStockThreshold: number
+  /** Unidades mínimas por pedido. 1 = sin mínimo. */
+  minOrderQuantity: number
   isFeatured: boolean
   /** Escalera de precios por cantidad, ya calculada y con el piso de margen aplicado. */
   priceTiers: PriceTier[]

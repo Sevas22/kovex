@@ -10,6 +10,7 @@ import { Faq } from '@/components/store/home/faq'
 import { Hero } from '@/components/store/home/hero'
 import { HowToBuy } from '@/components/store/home/how-to-buy'
 import { Manifesto } from '@/components/store/home/manifesto'
+import { QrCatalog } from '@/components/store/home/qr-catalog'
 import { MissionValues } from '@/components/store/home/mission-values'
 import { PromiseBar } from '@/components/store/home/promise-bar'
 import { SectionHeading } from '@/components/store/home/section-heading'
@@ -180,6 +181,7 @@ export default async function HomePage() {
       />
 
       <HowToBuy whatsappUrl={quoteUrl} />
+      <QrCatalog site={site} />
       <Faq whatsappUrl={questionUrl} />
       <CtaBand whatsappUrl={quoteUrl} brands={brands.map((b) => b.name)} />
     </>

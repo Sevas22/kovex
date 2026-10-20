@@ -25,6 +25,7 @@ export default async function ImportPage() {
       <SupplierSync total={sync.total} stale={sync.stale} lastSync={sync.lastSync} />
       <SupplierImporter
         remaining={Math.max(0, settings.productLimit - count)}
+        costIncludesTax={settings.supplierPricesIncludeTax}
         defaultMarkup={settings.defaultMarkupPercent}
         priceRounding={settings.priceRounding}
       />

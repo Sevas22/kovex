@@ -83,7 +83,11 @@ export default async function PricingPage({
             <CardDescription>Al guardar se recalculan los precios de todo el catálogo.</CardDescription>
           </CardHeader>
           <CardContent>
-            <PricingSettingsForm defaultMarkupPercent={settings.defaultMarkupPercent} priceRounding={settings.priceRounding} />
+            <PricingSettingsForm
+              defaultMarkupPercent={settings.defaultMarkupPercent}
+              priceRounding={settings.priceRounding}
+              costIncludesTax={settings.supplierPricesIncludeTax}
+            />
           </CardContent>
         </Card>
 
@@ -207,6 +211,8 @@ export default async function PricingPage({
                     categoryMarkup: inherited?.percent ?? null,
                     defaultMarkup: settings.defaultMarkupPercent,
                     rounding: settings.priceRounding,
+                    taxRate: p.taxRate,
+                    costIncludesTax: settings.supplierPricesIncludeTax,
                   })
                   const source =
                     b.markupSource === 'category' && inherited ? `de ${inherited.from.name}` : b.markupSource ? MARKUP_SOURCE_LABEL[b.markupSource] : null

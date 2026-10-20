@@ -111,6 +111,7 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
           priceRounding: settings.priceRounding,
           volumeTiers: settings.volumeTiers,
           minMarginPercent: settings.minMarginPercent,
+          supplierPricesIncludeTax: settings.supplierPricesIncludeTax,
         }}
       />
     </>

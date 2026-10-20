@@ -24,6 +24,7 @@ export default async function NewProductPage() {
           priceRounding: settings.priceRounding,
           volumeTiers: settings.volumeTiers,
           minMarginPercent: settings.minMarginPercent,
+          supplierPricesIncludeTax: settings.supplierPricesIncludeTax,
         }}
       />
     </>

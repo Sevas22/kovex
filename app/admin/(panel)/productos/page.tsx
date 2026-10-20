@@ -126,6 +126,8 @@ export default async function ProductsPage({
                     categoryMarkup: index.inheritedMarkup(p.categoryId)?.percent ?? null,
                     defaultMarkup: settings.defaultMarkupPercent,
                     rounding: settings.priceRounding,
+                    taxRate: p.taxRate,
+                    costIncludesTax: settings.supplierPricesIncludeTax,
                   })
                   const available = p.stock - p.reserved
                   const category = index.pathOf(p.categoryId).at(-1)?.name

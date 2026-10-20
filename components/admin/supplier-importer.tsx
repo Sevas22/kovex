@@ -46,10 +46,12 @@ interface SearchState {
 
 export function SupplierImporter({
   remaining,
+  costIncludesTax,
   defaultMarkup,
   priceRounding,
 }: {
   remaining: number
+  costIncludesTax: boolean
   defaultMarkup: number
   priceRounding: number
 }) {
@@ -119,6 +121,8 @@ export function SupplierImporter({
       categoryMarkup: null,
       defaultMarkup: defaultMarkup,
       rounding: priceRounding,
+      taxRate: 19,
+      costIncludesTax,
     })
     return price == null ? '—' : formatCOP(price)
   }

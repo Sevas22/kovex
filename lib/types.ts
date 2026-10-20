@@ -19,6 +19,8 @@ export interface StoreSettings {
   volumeTiers: VolumeTier[]
   /** Margen mínimo que ningún descuento puede traspasar. */
   minMarginPercent: number
+  /** true = el costo del proveedor ya trae IVA y hay que descontarlo. */
+  supplierPricesIncludeTax: boolean
 }
 
 /** Datos públicos de la tienda que necesitan los componentes de cliente. */

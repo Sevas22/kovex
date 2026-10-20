@@ -27,7 +27,13 @@ import { buildPriceTiers, floorPriceFor, type VolumeTier } from '@/lib/volume-pr
 interface ProductFormProps {
   product: AdminProductDetail | null
   categories: CategoryOption[]
-  pricing: { defaultMarkupPercent: number; priceRounding: number; volumeTiers: VolumeTier[]; minMarginPercent: number }
+  pricing: {
+    defaultMarkupPercent: number
+    priceRounding: number
+    volumeTiers: VolumeTier[]
+    minMarginPercent: number
+    supplierPricesIncludeTax: boolean
+  }
 }
 
 const toText = (n: number | null | undefined) => (n == null ? '' : String(n))
@@ -69,6 +75,8 @@ export function ProductForm({ product, categories, pricing }: ProductFormProps) 
     categoryMarkup: category?.inherited?.percent ?? null,
     defaultMarkup: pricing.defaultMarkupPercent,
     rounding: pricing.priceRounding,
+    taxRate: toDecimal(taxRate) ?? 19,
+    costIncludesTax: pricing.supplierPricesIncludeTax,
   })
   const inheritedHint = category?.inherited
     ? `Si lo dejas vacío usa ${formatPercent(category.inherited.percent)} de ${category.inherited.from}.`

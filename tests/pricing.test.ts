@@ -10,6 +10,9 @@ const base: PricingInput = {
   categoryMarkup: null,
   defaultMarkup: 20,
   rounding: 100,
+  // Sin IVA, para que las pruebas de margen sigan mirando solo el margen.
+  taxRate: 0,
+  costIncludesTax: false,
 }
 
 describe('computePrice', () => {
@@ -58,5 +61,46 @@ describe('computePrice', () => {
     const r = computePrice({ ...base, costPrice: null })
     assert.equal(r.price, null)
     assert.equal(r.missing, 'no-cost')
+  })
+})
+
+describe('computePrice con IVA', () => {
+  const conIva: PricingInput = { ...base, taxRate: 19 }
+
+  it('aplica el margen sobre el valor sin IVA y suma el impuesto al final', () => {
+    // 3.604 × 1,20 = 4.324,80 neto → × 1,19 = 5.146,51 → sube a 5.200
+    const r = computePrice(conIva)
+    assert.equal(r.price, 5200)
+    assert.equal(r.netCost, 3604)
+    // El neto se deduce del precio público ya redondeado.
+    assert.equal(r.netPrice, 4370)
+    assert.equal(r.taxAmount, 830)
+    assert.equal(r.profit, 766)
+  })
+
+  it('el IVA no es ganancia: la ganancia es precio neto menos costo neto', () => {
+    const r = computePrice(conIva)
+    assert.equal(r.profit, r.netPrice! - r.netCost!)
+    assert.ok(r.profit! < r.price! - r.netCost!, 'contar el IVA inflaría la ganancia')
+  })
+
+  it('descuenta el IVA del costo cuando el proveedor ya lo incluye', () => {
+    const incluido = computePrice({ ...conIva, costIncludesTax: true })
+    // 3.604 / 1,19 = 3.028,57 de base
+    assert.equal(incluido.netCost, 3029)
+    assert.ok(incluido.price! < computePrice(conIva).price!, 'sacar el IVA baja la base y el precio')
+  })
+
+  it('respeta la tarifa reducida del 5 %', () => {
+    const reducido = computePrice({ ...base, taxRate: 5 })
+    assert.ok(reducido.price! < computePrice(conIva).price!)
+    assert.equal(reducido.netCost, 3604)
+  })
+
+  it('con precio fijo deduce el neto y el IVA desde el precio escrito', () => {
+    const fijo = computePrice({ ...conIva, mode: 'fixed', fixedPrice: 11900 })
+    assert.equal(fijo.price, 11900)
+    assert.equal(fijo.netPrice, 10000)
+    assert.equal(fijo.taxAmount, 1900)
   })
 })

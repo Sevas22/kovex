@@ -28,6 +28,7 @@ export interface AdminProductRow {
   trackInventory: boolean
   lowStockThreshold: number
   minOrderQuantity: number
+  taxRate: number
   isActive: boolean
   isFeatured: boolean
   sourceAvailable: boolean | null
@@ -92,7 +93,8 @@ export async function listAdminProducts(opts: {
   const rows = await sql<(AdminProductRow & { totalCount: number })[]>`
     select p.id, p.slug, p.name, p.brand, p.sku, p.images[1] as image, p.category_id, p.pricing_mode, p.cost_price,
            p.markup_percent, p.volume_tiers, p.fixed_price, p.price, p.stock, p.reserved, p.track_inventory,
-           ${low} as low_stock_threshold, p.is_active, p.is_featured, p.source_available, sup.name as supplier_name,
+           ${low} as low_stock_threshold, p.tax_rate, p.min_order_quantity,
+           p.is_active, p.is_featured, p.source_available, sup.name as supplier_name,
            count(*) over ()::int as total_count
     from public.products p
     cross join public.store_settings s

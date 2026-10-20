@@ -21,10 +21,19 @@ const ROUNDING: Record<string, string> = {
   '1000': 'A $1.000',
 }
 
-export function PricingSettingsForm({ defaultMarkupPercent, priceRounding }: { defaultMarkupPercent: number; priceRounding: number }) {
+export function PricingSettingsForm({
+  defaultMarkupPercent,
+  priceRounding,
+  costIncludesTax,
+}: {
+  defaultMarkupPercent: number
+  priceRounding: number
+  costIncludesTax: boolean
+}) {
   const [markup, setMarkup] = useState(String(defaultMarkupPercent))
   const [rounding, setRounding] = useState(String(priceRounding))
   const [sampleCost, setSampleCost] = useState('3604')
+  const [sampleTax, setSampleTax] = useState(19)
   const { pending, execute } = useAdminAction()
 
   const markupValue = Number(markup.replace(',', '.')) || 0
@@ -36,6 +45,8 @@ export function PricingSettingsForm({ defaultMarkupPercent, priceRounding }: { d
     categoryMarkup: null,
     defaultMarkup: markupValue,
     rounding: Number(rounding),
+    taxRate: sampleTax,
+    costIncludesTax,
   })
 
   return (

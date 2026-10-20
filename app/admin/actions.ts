@@ -318,6 +318,7 @@ export async function saveStoreSettingsAction(input: {
   address: string
   city: string
   lowStockThreshold: number
+  supplierPricesIncludeTax: boolean
 }) {
   const parsed = z
     .object({
@@ -331,17 +332,20 @@ export async function saveStoreSettingsAction(input: {
       address: z.string().trim().max(200),
       city: z.string().trim().min(2).max(80),
       lowStockThreshold: z.number().int().min(0).max(100000),
+      supplierPricesIncludeTax: z.boolean(),
     })
     .parse(input)
-  return run(
-    () =>
-      updateSettings({
-        ...parsed,
-        contactPhone: parsed.contactPhone || null,
-        address: parsed.address || null,
-      }),
-    'Configuración guardada',
-  )
+  return run(async () => {
+    await updateSettings({
+      ...parsed,
+      contactPhone: parsed.contactPhone || null,
+      address: parsed.address || null,
+    })
+    // Cambiar si el costo trae IVA cambia la base del margen: hay que rehacer
+    // todos los precios, no solo guardar el dato.
+    const changed = await recalculatePrices()
+    return { changed }
+  }, 'Configuración guardada')
 }
 
 // ---------------------------------------------------------------------------
@@ -404,6 +408,8 @@ export async function searchSupplierAction(query: string, page = 1) {
           categoryMarkup: null,
           defaultMarkup: settings.defaultMarkupPercent,
           rounding: settings.priceRounding,
+          taxRate: p.taxRate,
+          costIncludesTax: settings.supplierPricesIncludeTax,
         }).price,
         available: p.available,
         categoryPath: p.categoryPath,

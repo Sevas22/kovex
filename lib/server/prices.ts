@@ -12,6 +12,7 @@ interface PricingRow {
   fixedPrice: number | null
   categoryId: number | null
   price: number | null
+  taxRate: number
 }
 
 /**
@@ -25,11 +26,11 @@ export async function recalculatePrices(sql: Sql | Tx = db(), productIds?: numbe
 
   const rows = productIds
     ? await sql<PricingRow[]>`
-        select id, pricing_mode, cost_price, markup_percent, fixed_price, category_id, price
+        select id, pricing_mode, cost_price, markup_percent, fixed_price, category_id, price, tax_rate
         from public.products where id = any(${productIds})
       `
     : await sql<PricingRow[]>`
-        select id, pricing_mode, cost_price, markup_percent, fixed_price, category_id, price
+        select id, pricing_mode, cost_price, markup_percent, fixed_price, category_id, price, tax_rate
         from public.products
       `
 
@@ -42,6 +43,8 @@ export async function recalculatePrices(sql: Sql | Tx = db(), productIds?: numbe
       categoryMarkup: index.inheritedMarkup(row.categoryId)?.percent ?? null,
       defaultMarkup: settings.defaultMarkupPercent,
       rounding: settings.priceRounding,
+      taxRate: row.taxRate,
+      costIncludesTax: settings.supplierPricesIncludeTax,
     })
     return price === row.price ? [] : [{ id: row.id, price }]
   })

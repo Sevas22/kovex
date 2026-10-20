@@ -56,9 +56,10 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
         markupPercent: number | null
         categoryId: number | null
         volumeTiers: unknown
+        taxRate: number
       }[]
     >`
-      select id, price, cost_price, markup_percent, category_id, volume_tiers
+      select id, price, cost_price, markup_percent, category_id, volume_tiers, tax_rate
       from public.products where id = any(${ids})
     `
     const byId = new Map(products.map((p) => [p.id, p]))
@@ -76,6 +77,8 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
           categoryMarkup: index.inheritedMarkup(product.categoryId)?.percent ?? null,
           defaultMarkup: settings.defaultMarkupPercent,
           rounding: settings.priceRounding,
+          taxRate: product.taxRate,
+          costIncludesTax: settings.supplierPricesIncludeTax,
         }).price
       const tier = tierForQuantity(priceTiersFor({ ...product, price: listPrice }, ctx), item.quantity)
       suggested.set(item.id, {

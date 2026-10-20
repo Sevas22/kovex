@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Field, FieldDescription, FieldGroup, FieldLabel, FieldLegend, FieldSet } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
+import { Switch } from '@/components/ui/switch'
 import type { StoreSettings } from '@/lib/types'
 import { normalizePhone } from '@/lib/text'
 
@@ -21,6 +22,7 @@ export function StoreSettingsForm({ settings }: { settings: StoreSettings }) {
     city: settings.city,
     lowStockThreshold: String(settings.lowStockThreshold),
   })
+  const [incluyeIva, setIncluyeIva] = useState(settings.supplierPricesIncludeTax)
   const { pending, execute } = useAdminAction()
   const set = (key: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) => setForm((f) => ({ ...f, [key]: e.target.value }))
   const testUrl = `https://wa.me/${normalizePhone(form.whatsappNumber)}?text=${encodeURIComponent('Prueba de WhatsApp desde el panel KOVEX')}`
@@ -29,7 +31,13 @@ export function StoreSettingsForm({ settings }: { settings: StoreSettings }) {
     <form
       onSubmit={(e) => {
         e.preventDefault()
-        execute(() => saveStoreSettingsAction({ ...form, lowStockThreshold: Number(form.lowStockThreshold) || 0 }))
+        execute(() =>
+          saveStoreSettingsAction({
+            ...form,
+            lowStockThreshold: Number(form.lowStockThreshold) || 0,
+            supplierPricesIncludeTax: incluyeIva,
+          }),
+        )
       }}
       className="flex max-w-2xl flex-col gap-8"
     >
@@ -81,6 +89,20 @@ export function StoreSettingsForm({ settings }: { settings: StoreSettings }) {
             </Field>
           </div>
         </FieldGroup>
+      </FieldSet>
+
+      <FieldSet>
+        <FieldLegend>IVA</FieldLegend>
+        <Field orientation="horizontal">
+          <Switch id="s-iva" checked={incluyeIva} onCheckedChange={setIncluyeIva} />
+          <FieldLabel htmlFor="s-iva">El costo del proveedor ya incluye IVA</FieldLabel>
+        </Field>
+        <FieldDescription className="-mt-2">
+          El margen siempre se calcula sobre el valor sin IVA, y el impuesto se suma al final según la tarifa de cada
+          producto. Esto dice cómo leer el costo que viene del proveedor.{' '}
+          <strong>Cambiarlo recalcula todos los precios del catálogo.</strong> Si lo apagas sin que el proveedor lo
+          haya confirmado, los precios suben alrededor de un 19 %.
+        </FieldDescription>
       </FieldSet>
 
       <FieldSet>

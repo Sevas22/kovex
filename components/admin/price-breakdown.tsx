@@ -37,26 +37,42 @@ export function PriceBreakdownView({
     )
   }
 
-  const margin = (breakdown.beforeRounding ?? 0) - (costPrice ?? 0)
-  const profit = breakdown.price! - (costPrice ?? 0)
+  const netCost = breakdown.netCost ?? costPrice ?? 0
+  const costWithTax = costPrice ?? 0
+  const margen = (breakdown.netPrice ?? 0) - netCost
   return (
     <dl className={cn('grid grid-cols-[1fr_auto] gap-x-4 gap-y-1.5 text-sm', className)}>
       <dt className="text-muted-foreground">Costo del proveedor</dt>
-      <dd className="text-right tabular">{formatCOP(costPrice ?? 0)}</dd>
+      <dd className="text-right tabular">{formatCOP(costWithTax)}</dd>
+      {/* Si el costo venía con IVA, se muestra la base: el margen se calcula ahí */}
+      {netCost !== costWithTax ? (
+        <>
+          <dt className="text-muted-foreground">Costo sin IVA (base)</dt>
+          <dd className="text-right tabular">{formatCOP(netCost)}</dd>
+        </>
+      ) : null}
       <dt className="text-muted-foreground">
         + {formatPercent(breakdown.markupPercent)} ({MARKUP_SOURCE_LABEL[breakdown.markupSource!]})
       </dt>
-      <dd className="text-right tabular">{formatCOP(Math.round(margin))}</dd>
+      <dd className="text-right tabular">{formatCOP(Math.round(margen))}</dd>
+      <dt className="text-muted-foreground">Precio sin IVA</dt>
+      <dd className="text-right tabular">{formatCOP(breakdown.netPrice ?? 0)}</dd>
+      <dt className="text-muted-foreground">+ IVA</dt>
+      <dd className="text-right tabular">{formatCOP(breakdown.taxAmount ?? 0)}</dd>
       {rounding > 1 ? (
         <>
-          <dt className="text-muted-foreground">Redondeo hacia arriba a {formatCOP(rounding)}</dt>
-          <dd className="text-right tabular">+ {formatCOP(Math.round(breakdown.price! - (breakdown.beforeRounding ?? 0)))}</dd>
+          <dt className="text-xs text-muted-foreground">Redondeado hacia arriba a {formatCOP(rounding)}</dt>
+          <dd className="text-right text-xs text-muted-foreground tabular">
+            desde {formatCOP(Math.round(breakdown.beforeRounding ?? 0))}
+          </dd>
         </>
       ) : null}
-      <dt className="border-t pt-2 font-semibold">Precio de venta (IVA incluido)</dt>
+      <dt className="border-t pt-2 font-semibold">Precio al público (IVA incluido)</dt>
       <dd className="border-t pt-2 text-right text-xl font-bold text-brand-navy tabular">{formatCOP(breakdown.price!)}</dd>
-      <dt className="text-xs text-muted-foreground">Ganancia bruta por unidad</dt>
-      <dd className="text-right text-xs font-semibold text-success tabular">{formatCOP(profit)}</dd>
+      <dt className="text-xs text-muted-foreground">
+        Ganancia por unidad <span className="text-muted-foreground/70">(sin IVA: el impuesto no es ganancia)</span>
+      </dt>
+      <dd className="text-right text-xs font-semibold text-success tabular">{formatCOP(breakdown.profit ?? 0)}</dd>
     </dl>
   )
 }

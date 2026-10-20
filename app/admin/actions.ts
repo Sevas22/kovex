@@ -251,6 +251,61 @@ export async function saveCategoryMarkupAction(categoryId: number, markupPercent
   }, 'Margen de la categoría guardado')
 }
 
+/**
+ * Sube o fija el margen de un departamento o categoría de una sola vez.
+ *
+ * Por defecto escribe el margen solo en la categoría elegida: todo lo que
+ * hereda de ella sube con ella. Con `incluirPropios` también suma los puntos a
+ * las familias de abajo que tienen margen propio, que si no quedarían quietas.
+ */
+export async function bulkMarkupAction(input: {
+  /** null = todo el catálogo (margen general). */
+  categoryId: number | null
+  modo: 'sumar' | 'fijar'
+  puntos: number
+  incluirPropios: boolean
+}) {
+  const puntos = z.number().min(-100).max(500).parse(input.puntos)
+  const modo = z.enum(['sumar', 'fijar']).parse(input.modo)
+  const categoryId = input.categoryId == null ? null : id.parse(input.categoryId)
+
+  return run(async () => {
+    const sql = db()
+    const [settings, categories] = await Promise.all([loadSettings(sql), loadCategories(sql)])
+    const index = buildCategoryIndex(categories)
+    const limite = (n: number) => Math.max(0, Math.min(500, Math.round(n * 100) / 100))
+
+    let tocadas = 0
+
+    if (categoryId == null) {
+      const base = modo === 'fijar' ? puntos : settings.defaultMarkupPercent + puntos
+      await sql`update public.store_settings set default_markup_percent = ${limite(base)} where id`
+      tocadas = 1
+    } else {
+      const actual = index.inheritedMarkup(categoryId)?.percent ?? settings.defaultMarkupPercent
+      const base = modo === 'fijar' ? puntos : actual + puntos
+      await sql`update public.categories set markup_percent = ${limite(base)} where id = ${categoryId}`
+      tocadas = 1
+    }
+
+    if (input.incluirPropios) {
+      // Las de abajo con margen propio no heredan, así que se ajustan aparte.
+      const dentro = categoryId == null ? categories.map((c) => c.id) : index.subtreeIds(categoryId)
+      const propias = categories.filter(
+        (c) => c.markupPercent != null && c.id !== categoryId && dentro.includes(c.id),
+      )
+      for (const c of propias) {
+        const base = modo === 'fijar' ? puntos : Number(c.markupPercent) + puntos
+        await sql`update public.categories set markup_percent = ${limite(base)} where id = ${c.id}`
+      }
+      tocadas += propias.length
+    }
+
+    const changed = await recalculatePrices()
+    return { changed, tocadas }
+  }, 'Márgenes actualizados')
+}
+
 // ---------------------------------------------------------------------------
 // Configuración de la tienda
 // ---------------------------------------------------------------------------

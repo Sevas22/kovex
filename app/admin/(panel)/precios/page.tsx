@@ -3,6 +3,7 @@ import { CategoryMarkupRowView } from '@/components/admin/category-markup-row'
 import { VolumeSettingsForm } from '@/components/admin/volume-settings-form'
 import { PageHeader } from '@/components/admin/page-header'
 import { AdminPagination } from '@/components/admin/pagination'
+import { BulkMarkupForm, type BulkScope } from '@/components/admin/bulk-markup-form'
 import { PricingSettingsForm } from '@/components/admin/pricing-settings-form'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -13,6 +14,7 @@ import { computePrice, MARKUP_SOURCE_LABEL, PRICING_MODE_LABEL } from '@/lib/pri
 import { getCategoryMarkupRows } from '@/lib/server/admin-categories'
 import { listAdminProducts } from '@/lib/server/admin-products'
 import { buildCategoryIndex, getCategories } from '@/lib/server/categories'
+import { db } from '@/lib/server/db'
 import { getSettings } from '@/lib/server/settings'
 
 export const metadata = { title: 'Precios y márgenes' }
@@ -34,6 +36,38 @@ export default async function PricingPage({
   ])
   const filtrando = Boolean(familia || rama)
   const index = buildCategoryIndex(categories)
+  const byId = new Map(categories.map((c) => [c.id, c]))
+  const conteos = new Map(
+    (
+      await db()<{ categoryId: number; count: number }[]>`
+        select category_id, count(*)::int as count from public.products
+        where category_id is not null group by category_id
+      `
+    ).map((r) => [r.categoryId, r.count]),
+  )
+
+  // Alcances del aumento masivo: todo el catálogo y cada departamento.
+  const scopes: BulkScope[] = [
+    {
+      id: null,
+      label: 'Todo el catálogo',
+      current: settings.defaultMarkupPercent,
+      productCount: products.total,
+      ownCount: categories.filter((c) => c.markupPercent != null).length,
+    },
+    ...categories
+      .filter((c) => c.parentId == null)
+      .map((d) => {
+        const dentro = index.subtreeIds(d.id)
+        return {
+          id: d.id,
+          label: d.name,
+          current: index.inheritedMarkup(d.id)?.percent ?? settings.defaultMarkupPercent,
+          productCount: dentro.reduce((s, cid) => s + (conteos.get(cid) ?? 0), 0),
+          ownCount: dentro.filter((cid) => cid !== d.id && byId.get(cid)?.markupPercent != null).length,
+        }
+      }),
+  ]
 
   return (
     <>
@@ -68,6 +102,19 @@ export default async function PricingPage({
               minMarginPercent={settings.minMarginPercent}
               priceRounding={settings.priceRounding}
             />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Aumento masivo</CardTitle>
+            <CardDescription>
+              Sube o fija el margen de un departamento entero —o de todo el catálogo— sin tocar familia por familia.
+              Al aplicar se recalculan los precios.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <BulkMarkupForm scopes={scopes} />
           </CardContent>
         </Card>
 

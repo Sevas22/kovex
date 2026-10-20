@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useState } from 'react'
 import { CategoryTiersCell } from './category-tiers-cell'
 import { useAdminAction } from './use-action'
@@ -16,10 +17,13 @@ export function CategoryMarkupRowView({
   row,
   defaultMarkup,
   generalTiers,
+  showPath = false,
 }: {
   row: CategoryMarkupRow
   defaultMarkup: number
   generalTiers: VolumeTier[]
+  /** Muestra la ruta al lado del nombre (útil al buscar). */
+  showPath?: boolean
 }) {
   const initial = row.markupPercent == null ? '' : String(row.markupPercent)
   const [value, setValue] = useState(initial)
@@ -33,6 +37,19 @@ export function CategoryMarkupRowView({
         <span style={{ paddingLeft: row.depth * 20 }} className="inline-block">
           {row.depth > 0 ? <span className="mr-1.5 text-muted-foreground">└</span> : null}
           {row.name}
+          {/* La ruta desambigua los nombres repetidos del proveedor */}
+          {showPath && row.path ? (
+            <span className="ml-2 text-xs text-muted-foreground">{row.path}</span>
+          ) : null}
+          {row.hasChildren ? (
+            <Link
+              href={`/admin/precios?rama=${row.id}`}
+              className="ml-2 text-xs text-brand-blue hover:underline"
+              title="Ver las familias de esta categoría"
+            >
+              abrir
+            </Link>
+          ) : null}
         </span>
       </TableCell>
       <TableCell className="text-right text-muted-foreground tabular">{row.productCount}</TableCell>

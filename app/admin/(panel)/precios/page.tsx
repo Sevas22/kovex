@@ -5,6 +5,7 @@ import { PageHeader } from '@/components/admin/page-header'
 import { AdminPagination } from '@/components/admin/pagination'
 import { PricingSettingsForm } from '@/components/admin/pricing-settings-form'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { formatCOP, formatPercent } from '@/lib/format'
@@ -16,14 +17,22 @@ import { getSettings } from '@/lib/server/settings'
 
 export const metadata = { title: 'Precios y márgenes' }
 
-export default async function PricingPage({ searchParams }: { searchParams: Promise<{ pagina?: string }> }) {
-  const pagina = Number((await searchParams).pagina) || 1
+export default async function PricingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ pagina?: string; familia?: string; rama?: string }>
+}) {
+  const sp = await searchParams
+  const pagina = Number(sp.pagina) || 1
+  const familia = (sp.familia ?? '').trim()
+  const rama = Number(sp.rama) || undefined
   const [settings, rows, products, categories] = await Promise.all([
     getSettings(),
-    getCategoryMarkupRows(),
+    getCategoryMarkupRows({ search: familia || undefined, branchId: familia ? undefined : rama }),
     listAdminProducts({ status: 'todos', page: pagina }),
     getCategories(),
   ])
+  const filtrando = Boolean(familia || rama)
   const index = buildCategoryIndex(categories)
 
   return (
@@ -64,14 +73,38 @@ export default async function PricingPage({ searchParams }: { searchParams: Prom
 
         <Card>
           <CardHeader>
-            <CardTitle>Margen por categoría</CardTitle>
+            <CardTitle>Margen por categoría y familia</CardTitle>
             <CardDescription>
-              Déjalo vacío para heredar. Un margen en un departamento aplica a todas sus subcategorías salvo que tengan uno
-              propio. Se muestran los departamentos y sus categorías directas; las subcategorías más profundas heredan de
-              ellas.
+              Déjalo vacío para heredar. Un margen en un departamento aplica a todas sus subcategorías salvo que tengan
+              uno propio. Busca una familia por nombre —«lijas», «grifería», «discos»— para fijarle su propio margen, o
+              abre una rama para ver todo lo que cuelga de ella.
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex flex-col gap-4">
+            <form method="get" className="flex flex-wrap items-center gap-2">
+              <input
+                type="search"
+                name="familia"
+                defaultValue={familia}
+                placeholder="Buscar familia: lijas, grifería, discos…"
+                aria-label="Buscar familia de productos"
+                className="h-9 w-full max-w-sm rounded-md border bg-white px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              />
+              <Button type="submit" size="sm">
+                Buscar
+              </Button>
+              {filtrando ? (
+                <Button variant="ghost" size="sm" nativeButton={false} render={<Link href="/admin/precios" />}>
+                  Ver todas
+                </Button>
+              ) : null}
+              {familia ? (
+                <span className="text-sm text-muted-foreground">
+                  {rows.length === 60 ? 'Primeras 60 coincidencias' : `${rows.length} coincidencia${rows.length === 1 ? '' : 's'}`}
+                </span>
+              ) : null}
+            </form>
+
             <Table>
               <TableHeader>
                 <TableRow>
@@ -90,6 +123,7 @@ export default async function PricingPage({ searchParams }: { searchParams: Prom
                     row={row}
                     defaultMarkup={settings.defaultMarkupPercent}
                     generalTiers={settings.volumeTiers}
+                    showPath={Boolean(familia)}
                   />
                 ))}
               </TableBody>

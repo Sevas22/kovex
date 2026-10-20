@@ -1,6 +1,7 @@
 import 'server-only'
 import { buildCategoryIndex, getCategories } from './categories'
 import { db } from './db'
+import { normalizeText } from '@/lib/text'
 import { parseTiers, type VolumeTier } from '@/lib/volume-pricing'
 
 export interface CategoryOption {
@@ -39,6 +40,10 @@ export interface CategoryMarkupRow {
   id: number
   name: string
   depth: number
+  /** Ruta desde el departamento, sin la propia: «Ferretería › Abrasivos». */
+  path: string
+  /** Tiene subcategorías: la fila ofrece abrir esa rama. */
+  hasChildren: boolean
   markupPercent: number | null
   inherited: { percent: number; from: string } | null
   /** Escala propia; null = heredada. */
@@ -48,11 +53,18 @@ export interface CategoryMarkupRow {
   productCount: number
 }
 
+export interface MarkupRowsQuery {
+  /** Abre una rama completa: esa categoría y todo lo que cuelga de ella. */
+  branchId?: number
+  /** Busca por nombre en todo el árbol, sin importar la profundidad. */
+  search?: string
+}
+
 /**
  * Filas para la tabla de márgenes. Por defecto solo departamentos y sus hijas: más
  * abajo el árbol del proveedor tiene cientos de hojas que heredan igual.
  */
-export async function getCategoryMarkupRows(maxDepth = 1): Promise<CategoryMarkupRow[]> {
+export async function getCategoryMarkupRows(query: MarkupRowsQuery = {}): Promise<CategoryMarkupRow[]> {
   const [categories, counts] = await Promise.all([
     getCategories(),
     db()<{ categoryId: number; count: number }[]>`
@@ -61,27 +73,60 @@ export async function getCategoryMarkupRows(maxDepth = 1): Promise<CategoryMarku
   ])
   const index = buildCategoryIndex(categories)
   const direct = new Map(counts.map((c) => [c.categoryId, c.count]))
-  const rows: CategoryMarkupRow[] = []
-  const walk = (parentId: number | null, depth: number) => {
-    if (depth > maxDepth) return
-    for (const c of index.childrenOf(parentId)) {
-      const parentInherited = c.parentId == null ? null : index.inheritedMarkup(c.parentId)
-      rows.push({
-        id: c.id,
-        name: c.name,
-        depth,
-        markupPercent: c.markupPercent,
-        inherited: parentInherited ? { percent: parentInherited.percent, from: parentInherited.from.name } : null,
-        volumeTiers: parseTiers(c.volumeTiers),
-        inheritedTiers: (() => {
-          const found = c.parentId == null ? null : index.inheritedTiers(c.parentId)
-          return found ? { tiers: found.tiers, from: found.from.name } : null
-        })(),
-        productCount: index.subtreeIds(c.id).reduce((s, id) => s + (direct.get(id) ?? 0), 0),
-      })
-      walk(c.id, depth + 1)
+
+  const fila = (c: (typeof categories)[number], depth: number): CategoryMarkupRow => {
+    const parentInherited = c.parentId == null ? null : index.inheritedMarkup(c.parentId)
+    const parentTiers = c.parentId == null ? null : index.inheritedTiers(c.parentId)
+    return {
+      id: c.id,
+      name: c.name,
+      depth,
+      // La ruta desambigua: el proveedor repite nombres como «Herramientas
+      // manuales» en más de un departamento.
+      path: index
+        .pathOf(c.id)
+        .slice(0, -1)
+        .map((p) => p.name)
+        .join(' › '),
+      hasChildren: index.childrenOf(c.id).length > 0,
+      markupPercent: c.markupPercent,
+      inherited: parentInherited ? { percent: parentInherited.percent, from: parentInherited.from.name } : null,
+      volumeTiers: parseTiers(c.volumeTiers),
+      inheritedTiers: parentTiers ? { tiers: parentTiers.tiers, from: parentTiers.from.name } : null,
+      productCount: index.subtreeIds(c.id).reduce((s, id) => s + (direct.get(id) ?? 0), 0),
     }
   }
-  walk(null, 0)
+
+  // Búsqueda: cualquier profundidad. Es como se llega a las familias, que son
+  // las hojas donde de verdad viven los productos.
+  const termino = normalizeText(query.search ?? '').trim()
+  if (termino) {
+    return categories
+      .filter((c) => normalizeText(c.name).includes(termino))
+      .map((c) => fila(c, Math.max(0, index.pathOf(c.id).length - 1)))
+      .sort((a, b) => b.productCount - a.productCount || a.name.localeCompare(b.name, 'es'))
+      .slice(0, 60)
+  }
+
+  const rows: CategoryMarkupRow[] = []
+  const walk = (parentId: number | null, depth: number, maxDepth: number) => {
+    if (depth > maxDepth) return
+    for (const c of index.childrenOf(parentId)) {
+      rows.push(fila(c, depth))
+      walk(c.id, depth + 1, maxDepth)
+    }
+  }
+
+  // Una rama abierta se muestra completa; si no, departamentos y sus hijas,
+  // porque el árbol del proveedor tiene cientos de hojas.
+  if (query.branchId != null && index.byId.has(query.branchId)) {
+    const raiz = index.byId.get(query.branchId)!
+    const base = Math.max(0, index.pathOf(raiz.id).length - 1)
+    rows.push(fila(raiz, base))
+    walk(raiz.id, base + 1, base + 3)
+    return rows
+  }
+
+  walk(null, 0, 1)
   return rows
 }

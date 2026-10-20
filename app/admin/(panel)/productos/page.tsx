@@ -1,4 +1,4 @@
-import { DownloadCloudIcon, PlusIcon, SearchIcon } from 'lucide-react'
+import { FileDownIcon, DownloadCloudIcon, PlusIcon, SearchIcon } from 'lucide-react'
 import Link from 'next/link'
 import { AdminPagination } from '@/components/admin/pagination'
 import { PageHeader } from '@/components/admin/page-header'
@@ -54,6 +54,10 @@ export default async function ProductsPage({
         description={`${formatNumber(products.total)} en esta vista · el plan permite hasta ${formatNumber(settings.productLimit)} productos.`}
         actions={
           <>
+            <Button variant="outline" size="lg" nativeButton={false} render={<a href="/api/admin/exportar?tipo=catalogo" />}>
+              <FileDownIcon data-icon="inline-start" />
+              Descargar catálogo
+            </Button>
             <Button variant="outline" size="lg" nativeButton={false} render={<Link href="/admin/importar" />}>
               <DownloadCloudIcon data-icon="inline-start" />
               Importar de Texcomercial

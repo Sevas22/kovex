@@ -124,7 +124,12 @@ export default async function PricingPage({
 
         <Card>
           <CardHeader>
-            <CardTitle>Margen por categoría y familia</CardTitle>
+            <CardTitle className="flex flex-wrap items-center justify-between gap-3">
+              Margen por categoría y familia
+              <Button variant="outline" size="sm" nativeButton={false} render={<a href="/api/admin/exportar?tipo=margenes" />}>
+                Descargar para Excel
+              </Button>
+            </CardTitle>
             <CardDescription>
               Déjalo vacío para heredar. Un margen en un departamento aplica a todas sus subcategorías salvo que tengan
               uno propio. Busca una familia por nombre —«lijas», «grifería», «discos»— para fijarle su propio margen, o

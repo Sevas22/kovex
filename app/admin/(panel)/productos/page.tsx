@@ -2,7 +2,8 @@ import { FileDownIcon, DownloadCloudIcon, PlusIcon, SearchIcon } from 'lucide-re
 import Link from 'next/link'
 import { AdminPagination } from '@/components/admin/pagination'
 import { PageHeader } from '@/components/admin/page-header'
-import { ProductActiveSwitch, ProductFeaturedToggle } from '@/components/admin/product-active-switch'
+import { BulkPriceVisibility } from '@/components/admin/bulk-price-visibility'
+import { ProductActiveSwitch, ProductFeaturedToggle, ProductPriceToggle } from '@/components/admin/product-active-switch'
 import { ProductImage } from '@/components/store/product-image'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -54,6 +55,11 @@ export default async function ProductsPage({
         description={`${formatNumber(products.total)} en esta vista · el plan permite hasta ${formatNumber(settings.productLimit)} productos.`}
         actions={
           <>
+            <BulkPriceVisibility
+              total={products.total}
+              filtrado={Boolean(q)}
+              alcance={{ q: q || undefined }}
+            />
             <Button variant="outline" size="lg" nativeButton={false} render={<a href="/api/admin/exportar?tipo=catalogo" />}>
               <FileDownIcon data-icon="inline-start" />
               Descargar catálogo
@@ -183,6 +189,7 @@ export default async function ProductsPage({
                         <ProductActiveSwitch id={p.id} name={p.name} isActive={p.isActive} />
                       </TableCell>
                       <TableCell className="text-center">
+                        <ProductPriceToggle id={p.id} name={p.name} showPrice={p.showPrice} />
                         <ProductFeaturedToggle id={p.id} name={p.name} isFeatured={p.isFeatured} />
                       </TableCell>
                     </TableRow>

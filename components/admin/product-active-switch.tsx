@@ -1,6 +1,6 @@
 'use client'
 
-import { StarIcon } from 'lucide-react'
+import { EyeIcon, EyeOffIcon, StarIcon } from 'lucide-react'
 import { useOptimistic, useTransition } from 'react'
 import { toast } from 'sonner'
 import { setProductFlagsAction } from '@/app/admin/actions'
@@ -44,6 +44,34 @@ export function ProductFeaturedToggle({ id, name, isFeatured }: { id: number; na
       }
     >
       <StarIcon className={cn(optimistic ? 'fill-brand-blue text-brand-blue' : 'text-muted-foreground')} />
+    </Button>
+  )
+}
+
+/** Publica u oculta el precio de un producto suelto, sin tocar su margen. */
+export function ProductPriceToggle({ id, name, showPrice }: { id: number; name: string; showPrice: boolean }) {
+  const [optimistic, setOptimistic] = useOptimistic(showPrice)
+  const [, startTransition] = useTransition()
+  return (
+    <Button
+      variant="ghost"
+      size="icon-sm"
+      aria-pressed={optimistic}
+      aria-label={`${name}: ${optimistic ? 'precio publicado' : 'precio oculto'}`}
+      title={optimistic ? 'Precio publicado · clic para ocultarlo' : 'Precio oculto · clic para publicarlo'}
+      onClick={() =>
+        startTransition(async () => {
+          setOptimistic(!optimistic)
+          const result = await setProductFlagsAction(id, { showPrice: !optimistic })
+          if (!result.ok) toast.error(result.error)
+        })
+      }
+    >
+      {optimistic ? (
+        <EyeIcon className="text-muted-foreground" />
+      ) : (
+        <EyeOffIcon className="text-warning" />
+      )}
     </Button>
   )
 }

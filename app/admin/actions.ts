@@ -186,9 +186,51 @@ export async function saveProductAction(productId: number | null, input: Product
   )
 }
 
-export async function setProductFlagsAction(productId: number, flags: { isActive?: boolean; isFeatured?: boolean }) {
-  const parsed = z.object({ isActive: z.boolean().optional(), isFeatured: z.boolean().optional() }).parse(flags)
+export async function setProductFlagsAction(
+  productId: number,
+  flags: { isActive?: boolean; isFeatured?: boolean; showPrice?: boolean },
+) {
+  const parsed = z
+    .object({ isActive: z.boolean().optional(), isFeatured: z.boolean().optional(), showPrice: z.boolean().optional() })
+    .parse(flags)
   return run(() => setProductFlags(id.parse(productId), parsed))
+}
+
+/**
+ * Publica u oculta el precio de varios productos a la vez.
+ *
+ * `alcance` es el mismo filtro de la lista del panel: sin nada toca todo el
+ * catálogo, con búsqueda o categoría toca solo lo que el usuario está viendo.
+ * No cambia pricing_mode, así que al volver a publicar cada producto recupera
+ * su modo de precio original.
+ */
+export async function bulkShowPriceAction(input: {
+  showPrice: boolean
+  alcance: { q?: string; category?: number }
+}) {
+  const showPrice = z.boolean().parse(input.showPrice)
+  const q = (input.alcance.q ?? '').trim()
+  const category = input.alcance.category
+
+  return run(async () => {
+    const sql = db()
+    const conds = [sql`true`]
+    for (const w of normalizeText(q).split(' ').filter(Boolean).slice(0, 6)) {
+      conds.push(sql`search_text like ${`%${w}%`}`)
+    }
+    if (category) {
+      const index = buildCategoryIndex(await loadCategories(sql))
+      conds.push(sql`category_id = any(${index.subtreeIds(id.parse(category))})`)
+    }
+    const where = conds.reduce((acc, c) => sql`${acc} and ${c}`)
+
+    const filas = await sql<{ id: number }[]>`
+      update public.products set show_price = ${showPrice}
+      where ${where} and show_price <> ${showPrice}
+      returning id
+    `
+    return { changed: filas.length }
+  }, input.showPrice ? 'Precios publicados' : 'Precios ocultos')
 }
 
 export async function deleteProductAction(productId: number) {

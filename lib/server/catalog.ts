@@ -36,7 +36,9 @@ export const PAGE_SIZE = 24
 function summaryColumns() {
   const sql = db()
   return sql`
-    p.id, p.slug, p.name, p.brand, p.sku, p.images[1] as image, p.unit, p.price, p.compare_at_price,
+    p.id, p.slug, p.name, p.brand, p.sku, p.images[1] as image, p.unit,
+    -- show_price apagado = se comporta como «a cotizar» en toda la tienda
+    case when p.show_price then p.price end as price, p.compare_at_price,
     p.cost_price, p.volume_tiers, p.category_id,
     case when p.track_inventory then p.stock - p.reserved end as available,
     coalesce(p.low_stock_threshold, s.low_stock_threshold) as low_stock_threshold,

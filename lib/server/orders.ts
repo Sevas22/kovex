@@ -55,7 +55,8 @@ export async function createOrder(input: {
 
   return db().begin(async (tx) => {
     const products = await tx<ProductForOrder[]>`
-      select id, name, sku, images[1] as image, unit, price, is_active,
+      select id, name, sku, images[1] as image, unit,
+             case when show_price then price end as price, is_active,
              cost_price, volume_tiers, category_id, min_order_quantity
       from public.products
       where id = any(${ids})

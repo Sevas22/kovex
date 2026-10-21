@@ -29,6 +29,7 @@ export interface AdminProductRow {
   lowStockThreshold: number
   minOrderQuantity: number
   taxRate: number
+  showPrice: boolean
   isActive: boolean
   isFeatured: boolean
   sourceAvailable: boolean | null
@@ -93,7 +94,7 @@ export async function listAdminProducts(opts: {
   const rows = await sql<(AdminProductRow & { totalCount: number })[]>`
     select p.id, p.slug, p.name, p.brand, p.sku, p.images[1] as image, p.category_id, p.pricing_mode, p.cost_price,
            p.markup_percent, p.volume_tiers, p.fixed_price, p.price, p.stock, p.reserved, p.track_inventory,
-           ${low} as low_stock_threshold, p.tax_rate, p.min_order_quantity,
+           ${low} as low_stock_threshold, p.tax_rate, p.min_order_quantity, p.show_price,
            p.is_active, p.is_featured, p.source_available, sup.name as supplier_name,
            count(*) over ()::int as total_count
     from public.products p
@@ -238,7 +239,7 @@ export async function saveProduct(id: number | null, input: ProductInput, opts: 
   })
 }
 
-export async function setProductFlags(id: number, flags: { isActive?: boolean; isFeatured?: boolean }) {
+export async function setProductFlags(id: number, flags: { isActive?: boolean; isFeatured?: boolean; showPrice?: boolean }) {
   const values = Object.fromEntries(Object.entries(flags).filter(([, v]) => v !== undefined))
   if (Object.keys(values).length === 0) return
   await db()`update public.products set ${db()(values)} where id = ${id}`

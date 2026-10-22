@@ -20,6 +20,7 @@ import {
   updateAdminNotes,
 } from '@/lib/server/orders'
 import { recalculatePrices } from '@/lib/server/prices'
+import { deleteCatalog, saveCatalog } from '@/lib/server/seasonal-catalogs'
 import { clientIp, consumeRateLimit, resetRateLimit } from '@/lib/server/rate-limit'
 import { loadSettings, updateSettings } from '@/lib/server/settings'
 import { syncSupplierBatch } from '@/lib/server/supplier-sync'
@@ -488,4 +489,43 @@ export async function importSupplierAction(input: {
     if (products.length === 0) throw new ImportError('El proveedor no devolvió esos productos. Intenta de nuevo.')
     return importSupplierProducts(products, { ...parsed, actor })
   })
+}
+
+// ---------------------------------------------------------------------------
+// Catálogos de temporada
+// ---------------------------------------------------------------------------
+
+const catalogInput = z.object({
+  title: z.string().trim().min(2).max(120),
+  description: z.string().trim().max(500).nullable(),
+  coverUrl: z.string().trim().max(2000).nullable(),
+  // Un PDF propio (/archivos/<id>.pdf) o una dirección externa.
+  fileUrl: z
+    .string()
+    .trim()
+    .min(3)
+    .max(2000)
+    .refine(
+      (v) => /^https?:\/\//.test(v) || /^\/archivos\/[0-9a-f-]{36}\.pdf$/i.test(v),
+      'Pega una dirección que empiece por https:// o sube un PDF.',
+    ),
+  isActive: z.boolean(),
+  sortOrder: z.number().int().min(0).max(9999),
+})
+
+export async function saveCatalogAction(catalogId: number | null, input: unknown) {
+  const parsed = catalogInput.safeParse(input)
+  if (!parsed.success) {
+    return { ok: false as const, error: parsed.error.issues[0]?.message ?? 'Revisa los datos del catálogo.' }
+  }
+  return run(async () => {
+    const nuevoId = await saveCatalog(catalogId == null ? null : id.parse(catalogId), parsed.data)
+    return { id: nuevoId }
+  }, catalogId == null ? 'Catálogo creado' : 'Catálogo guardado')
+}
+
+export async function deleteCatalogAction(catalogId: number) {
+  const result = await run(() => deleteCatalog(id.parse(catalogId)), 'Catálogo eliminado')
+  if (result.ok) redirect('/admin/temporadas')
+  return result
 }

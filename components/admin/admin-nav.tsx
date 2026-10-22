@@ -8,6 +8,7 @@ import {
   PackageIcon,
   PercentIcon,
   SettingsIcon,
+  SparklesIcon,
   UsersIcon,
 } from 'lucide-react'
 import Link from 'next/link'
@@ -21,6 +22,7 @@ const ITEMS = [
   { href: '/admin/productos', label: 'Productos', icon: PackageIcon },
   { href: '/admin/inventario', label: 'Inventario', icon: BoxesIcon },
   { href: '/admin/importar', label: 'Importar productos', icon: DownloadCloudIcon },
+  { href: '/admin/temporadas', label: 'Temporadas', icon: SparklesIcon },
   { href: '/admin/precios', label: 'Precios y márgenes', icon: PercentIcon },
   { href: '/admin/configuracion', label: 'Configuración', icon: SettingsIcon },
 ]

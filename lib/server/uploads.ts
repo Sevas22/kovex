@@ -4,6 +4,10 @@ import { db } from './db'
 /** Tipos que acepta el panel al subir una imagen. */
 export const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/avif'] as const
 export const MAX_UPLOAD_BYTES = 6 * 1024 * 1024
+
+/** Los catálogos de temporada son PDFs y pesan más que una foto. */
+export const PDF_TYPE = 'application/pdf'
+export const MAX_PDF_BYTES = 25 * 1024 * 1024
 /** Ancho máximo al que se reescala antes de guardar. */
 const MAX_WIDTH = 1600
 
@@ -70,6 +74,34 @@ export async function saveUpload(file: File): Promise<StoredUpload> {
     height: optimized.height,
     size: optimized.data.length,
   }
+}
+
+/**
+ * Guarda un PDF tal cual, sin pasarlo por sharp.
+ *
+ * Vive en la misma tabla que las imágenes pero se sirve desde /archivos/, para
+ * que quede claro en la URL que no es una foto y no lo toque el optimizador de
+ * imágenes de Next.
+ */
+export async function savePdf(file: File): Promise<StoredUpload> {
+  if (file.type !== PDF_TYPE) throw new UploadError(`«${file.name}» no es un PDF.`)
+  if (file.size > MAX_PDF_BYTES) {
+    throw new UploadError(`«${file.name}» pesa más de ${Math.round(MAX_PDF_BYTES / 1024 / 1024)} MB.`)
+  }
+
+  const data = Buffer.from(await file.arrayBuffer())
+  if (data.length === 0) throw new UploadError(`«${file.name}» está vacío.`)
+  // Firma de PDF: evita que una extensión renombrada pase por buena.
+  if (data.subarray(0, 5).toString('latin1') !== '%PDF-') {
+    throw new UploadError(`«${file.name}» no parece un PDF válido.`)
+  }
+
+  const [row] = await db()<{ id: string }[]>`
+    insert into public.uploads (filename, content_type, size, width, height, data)
+    values (${file.name.slice(0, 200)}, ${PDF_TYPE}, ${data.length}, null, null, ${data})
+    returning id::text as id
+  `
+  return { id: row.id, url: `/archivos/${row.id}.pdf`, width: null, height: null, size: data.length }
 }
 
 const EXTENSION: Record<string, string> = {

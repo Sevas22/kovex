@@ -43,6 +43,7 @@ export function MobileNav({ departments, whatsappUrl }: { departments: CategoryL
             ['/#nosotros', 'Nosotros'],
             ['/#como-comprar', 'Cómo comprar'],
             ['/#preguntas', 'Preguntas frecuentes'],
+            ['/temporadas', 'Temporadas'],
             ['/blog', 'Blog'],
             ['/admin', 'Panel administrativo'],
           ].map(([href, label]) => (

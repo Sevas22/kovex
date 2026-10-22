@@ -1,6 +1,6 @@
 'use client'
 
-import { LayoutGridIcon, LockIcon } from 'lucide-react'
+import { LayoutGridIcon, LockIcon, SparklesIcon } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import type { CategoryLink } from '@/lib/types'
@@ -38,6 +38,18 @@ export function DepartmentNav({ departments }: { departments: CategoryLink[] }) 
               </li>
             )
           })}
+          <li>
+            <Link
+              href="/temporadas"
+              className={cn(
+                "flex h-full items-center gap-2 px-3 text-sm whitespace-nowrap transition-colors",
+                pathname === "/temporadas" ? "bg-white/10 text-white" : "text-white/70 hover:text-white",
+              )}
+            >
+              <SparklesIcon className="size-4" aria-hidden="true" />
+              Temporadas
+            </Link>
+          </li>
         </ul>
         <div className="ml-auto hidden items-stretch lg:flex">
           <Link href="/#nosotros" className="flex items-center px-3 text-sm whitespace-nowrap text-white/70 hover:text-white">

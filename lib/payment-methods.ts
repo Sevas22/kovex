@@ -19,12 +19,12 @@ export interface PaymentMethod {
 }
 
 export const PAYMENT_METHODS: PaymentMethod[] = [
-  { slug: 'visa', name: 'Visa', logo: null },
-  { slug: 'mastercard', name: 'Mastercard', logo: null },
-  { slug: 'amex', name: 'American Express', logo: null },
+  { slug: 'visa', name: 'Visa', logo: '/pagos/visa.webp' },
+  { slug: 'mastercard', name: 'Mastercard', logo: '/pagos/mastercard.webp' },
+  { slug: 'amex', name: 'American Express', logo: '/pagos/amex.webp' },
   { slug: 'pse', name: 'PSE', logo: null },
-  { slug: 'nequi', name: 'Nequi', logo: null },
+  { slug: 'nequi', name: 'Nequi', logo: '/pagos/nequi.webp' },
   { slug: 'addi', name: 'Addi', logo: null },
-  { slug: 'bancolombia', name: 'Bancolombia', logo: null },
+  { slug: 'bancolombia', name: 'Bancolombia', logo: '/pagos/bancolombia.webp' },
   { slug: 'efectivo', name: 'Contra entrega', logo: null },
 ]

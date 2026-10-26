@@ -1,4 +1,5 @@
 import { MotionToggle } from '@/components/store/motion-toggle'
+import { PaymentStrip } from '@/components/store/payment-strip'
 import { SiteFooter } from '@/components/store/site-footer'
 import { SiteHeader } from '@/components/store/site-header'
 import { CartProvider } from '@/lib/cart'
@@ -18,6 +19,7 @@ export default async function StoreLayout({ children }: { children: React.ReactN
       <div className="flex min-h-dvh flex-col">
         <SiteHeader departments={links} store={store} />
         <main className="flex-1">{children}</main>
+        <PaymentStrip />
         <SiteFooter departments={links} store={store} />
         <MotionToggle />
       </div>

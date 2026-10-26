@@ -1,4 +1,5 @@
 import { Analytics } from '@vercel/analytics/next'
+import { GoogleTagManager } from '@/components/analytics/google-tag-manager'
 import type { Metadata, Viewport } from 'next'
 import { Michroma, Montserrat } from 'next/font/google'
 import { Toaster } from '@/components/ui/sonner'
@@ -44,12 +45,14 @@ export const viewport: Viewport = {
 const MOTION_SCRIPT = `try{var m=localStorage.getItem('kovex-motion');if(m==='off'||(!m&&matchMedia('(prefers-reduced-motion: reduce)').matches)){document.documentElement.dataset.motion='off'}}catch(e){}`
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const gtmId = process.env.NEXT_PUBLIC_GTM_ID
   return (
     <html lang="es-CO" className={`${montserrat.variable} ${michroma.variable}`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: MOTION_SCRIPT }} />
       </head>
       <body className="min-h-dvh bg-background font-sans text-foreground antialiased">
+        {gtmId ? <GoogleTagManager id={gtmId} /> : null}
         {children}
         <Toaster position="top-center" richColors theme="light" />
         {process.env.NODE_ENV === 'production' && <Analytics />}

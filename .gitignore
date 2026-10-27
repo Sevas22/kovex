@@ -19,3 +19,6 @@ tsconfig.tsbuildinfo
 
 # Base de datos local de pruebas: el cluster se escribe dentro del proyecto.
 data/
+
+# Respaldos de la reubicación de categorías (se generan al correr el script)
+scripts/respaldo-categorias*.json

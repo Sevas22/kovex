@@ -2,6 +2,7 @@
 
 import { refresh } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { after } from 'next/server'
 import { z } from 'zod'
 import { deleteProduct, ProductError, saveProduct, setProductFlags } from '@/lib/server/admin-products'
 import { assertAdmin, authenticate, endSession, startSession } from '@/lib/server/auth'
@@ -20,6 +21,7 @@ import {
   updateAdminNotes,
 } from '@/lib/server/orders'
 import { recalculatePrices } from '@/lib/server/prices'
+import { pendingProducts, storeImagesFor } from '@/lib/server/product-images'
 import { deleteCatalog, saveCatalog } from '@/lib/server/seasonal-catalogs'
 import { clientIp, consumeRateLimit, resetRateLimit } from '@/lib/server/rate-limit'
 import { loadSettings, updateSettings } from '@/lib/server/settings'
@@ -487,7 +489,17 @@ export async function importSupplierAction(input: {
   return run(async (actor) => {
     const products = await fetchSupplierProducts(parsed.handles)
     if (products.length === 0) throw new ImportError('El proveedor no devolvió esos productos. Intenta de nuevo.')
-    return importSupplierProducts(products, { ...parsed, actor })
+    const result = await importSupplierProducts(products, { ...parsed, actor })
+
+    // El producto queda guardado al instante con la foto enlazada al proveedor;
+    // la copia propia se descarga después de responder, para no hacer esperar a
+    // quien importa. Si esto no alcanza a terminar, el producto se queda con el
+    // enlace y lo recoge `pnpm catalog:store-images`: nunca se queda sin foto.
+    after(async () => {
+      await storeImagesFor(await pendingProducts(result.productIds))
+    })
+
+    return result
   })
 }
 

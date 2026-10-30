@@ -22,3 +22,6 @@ data/
 
 # Respaldos de la reubicación de categorías (se generan al correr el script)
 scripts/respaldo-categorias*.json
+
+# Informes que se regeneran (pnpm catalog:audit-images)
+informe-fotos.csv

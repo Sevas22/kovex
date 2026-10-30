@@ -106,6 +106,10 @@ async function main() {
   console.log(
     `\nListo en ${Math.round((Date.now() - inicio) / 1000)} s · ${total} productos · ${categorias} categorías · ${sinPrecio} a cotizar`,
   )
+  // Esta vía lee /products.json, que devuelve las direcciones de foto que tenía
+  // el proveedor cuando generó el listado: caducan. Guardar la copia propia aquí
+  // mismo añadiría una hora al proceso, así que se deja como paso siguiente.
+  console.log('Siguiente paso: pnpm catalog:store-images (guarda las fotos en la tienda)')
   await sql.end()
 }
 

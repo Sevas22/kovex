@@ -83,12 +83,13 @@ export async function listProducts(query: CatalogQuery): Promise<CatalogResult> 
       limit ${PAGE_SIZE} offset ${(page - 1) * PAGE_SIZE}
     `,
     // Marcas sin aplicar el filtro de marca, para poder elegir varias.
+    // En orden alfabético: con 49 marcas se busca una concreta, no se explora.
     sql<{ name: string; count: number }[]>`
       select p.brand as name, count(*)::int as count
       from public.products p
       where ${where(base)} and p.brand is not null
       group by p.brand
-      order by count(*) desc, p.brand
+      order by p.brand
     `,
   ])
 

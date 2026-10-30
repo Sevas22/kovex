@@ -44,6 +44,7 @@ export default async function OrderConfirmationPage({ params }: { params: Promis
       document: order.customerDocument,
       phone: formatPhone(order.customerPhone),
       email: order.customerEmail,
+      department: order.customerDepartment,
       city: order.customerCity,
       address: order.customerAddress,
       notes: order.customerNotes,
@@ -186,7 +187,7 @@ export default async function OrderConfirmationPage({ params }: { params: Promis
               <>
                 <dt>Entrega</dt>
                 <dd className="text-foreground">
-                  {[order.customerAddress, order.customerCity].filter(Boolean).join(', ')}
+                  {[order.customerAddress, order.customerCity, order.customerDepartment].filter(Boolean).join(', ')}
                 </dd>
               </>
             ) : null}

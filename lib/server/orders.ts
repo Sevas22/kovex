@@ -94,14 +94,15 @@ export async function createOrder(input: {
 
     const c = input.customer
     const [customer] = await tx<{ id: number }[]>`
-      insert into public.customers (phone, name, company, document, email, city, address)
+      insert into public.customers (phone, name, company, document, email, department, city, address)
       values (${phone}, ${c.name}, ${c.company || null}, ${c.document || null}, ${c.email || null},
-              ${c.city || null}, ${c.address || null})
+              ${c.department || null}, ${c.city || null}, ${c.address || null})
       on conflict (phone) do update set
         name = excluded.name,
         company = coalesce(excluded.company, public.customers.company),
         document = coalesce(excluded.document, public.customers.document),
         email = coalesce(excluded.email, public.customers.email),
+        department = coalesce(excluded.department, public.customers.department),
         city = coalesce(excluded.city, public.customers.city),
         address = coalesce(excluded.address, public.customers.address)
       returning id
@@ -127,11 +128,11 @@ export async function createOrder(input: {
     const [order] = await tx<CreatedOrder[]>`
       insert into public.orders
         (kind, customer_id, customer_name, customer_company, customer_document, customer_phone,
-         customer_email, customer_city, customer_address, customer_notes, subtotal, discount_total,
+         customer_email, customer_department, customer_city, customer_address, customer_notes, subtotal, discount_total,
          has_unpriced_items)
       values
         (${input.kind}, ${customer.id}, ${c.name}, ${c.company || null}, ${c.document || null}, ${phone},
-         ${c.email || null}, ${c.city || null}, ${c.address || null}, ${c.notes || null}, ${subtotal},
+         ${c.email || null}, ${c.department || null}, ${c.city || null}, ${c.address || null}, ${c.notes || null}, ${subtotal},
          ${discountTotal}, ${hasUnpriced})
       returning id, code, public_token::text as public_token, kind
     `

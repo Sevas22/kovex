@@ -144,6 +144,8 @@ export interface CustomerInput {
   document?: string
   phone: string
   email?: string
+  /** Departamento y municipio, de la lista del DANE (ver lib/colombia.ts). */
+  department?: string
   city?: string
   address?: string
   notes?: string

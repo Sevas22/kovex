@@ -19,7 +19,8 @@
     "qr": "tsx scripts/make-qr.ts",
     "categorias:arreglar": "tsx --env-file-if-exists=.env.local --conditions=react-server scripts/fix-categories.ts",
     "catalog:store-images": "tsx --env-file-if-exists=.env.local --conditions=react-server scripts/store-images.ts",
-    "catalog:audit-images": "tsx --env-file-if-exists=.env.local --conditions=react-server scripts/audit-images.ts"
+    "catalog:audit-images": "tsx --env-file-if-exists=.env.local --conditions=react-server scripts/audit-images.ts",
+    "colombia:build": "tsx --conditions=react-server scripts/build-colombia.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",

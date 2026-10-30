@@ -280,7 +280,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                 {order.customerCity || order.customerAddress ? (
                   <>
                     <dt className="text-muted-foreground">Entrega</dt>
-                    <dd>{[order.customerAddress, order.customerCity].filter(Boolean).join(', ')}</dd>
+                    <dd>{[order.customerAddress, order.customerCity, order.customerDepartment].filter(Boolean).join(', ')}</dd>
                   </>
                 ) : null}
               </dl>

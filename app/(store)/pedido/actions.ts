@@ -1,6 +1,7 @@
 'use server'
 
 import { z } from 'zod'
+import { DEPARTAMENTOS, esMunicipioValido } from '@/lib/colombia'
 import { createOrder, isBusinessError } from '@/lib/server/orders'
 import { clientIp, consumeRateLimit } from '@/lib/server/rate-limit'
 import { normalizePhone } from '@/lib/text'
@@ -31,6 +32,7 @@ const checkoutSchema = z
         .optional()
         .refine((v) => !v || z.email().safeParse(v).success, { message: 'Revisa el correo.' })
         .transform((v) => v || undefined),
+      department: optionalText(80),
       city: optionalText(80),
       address: optionalText(200),
       notes: optionalText(1000),
@@ -39,8 +41,20 @@ const checkoutSchema = z
     website: z.string().optional(),
   })
   .superRefine((data, ctx) => {
+    const { department, city } = data.customer
+    // El municipio se elige de una lista, pero el navegador no es de fiar: se
+    // comprueba contra la lista oficial para no guardar pares inventados.
+    if (department && !DEPARTAMENTOS.some((d) => d.name === department)) {
+      ctx.addIssue({ code: 'custom', path: ['customer', 'department'], message: 'Elige un departamento de la lista.' })
+    } else if (city && department && !esMunicipioValido(department, city)) {
+      ctx.addIssue({ code: 'custom', path: ['customer', 'city'], message: `${city} no pertenece a ${department}.` })
+    }
+
     if (data.kind !== 'order') return
-    if (!data.customer.city) ctx.addIssue({ code: 'custom', path: ['customer', 'city'], message: 'Indica la ciudad de entrega.' })
+    if (!department) {
+      ctx.addIssue({ code: 'custom', path: ['customer', 'department'], message: 'Elige el departamento de entrega.' })
+    }
+    if (!city) ctx.addIssue({ code: 'custom', path: ['customer', 'city'], message: 'Elige la ciudad de entrega.' })
     if (!data.customer.address) {
       ctx.addIssue({ code: 'custom', path: ['customer', 'address'], message: 'Indica la dirección de entrega.' })
     }

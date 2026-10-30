@@ -33,6 +33,7 @@ export interface OrderView {
   customerDocument: string | null
   customerPhone: string
   customerEmail: string | null
+  customerDepartment: string | null
   customerCity: string | null
   customerAddress: string | null
   customerNotes: string | null

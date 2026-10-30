@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
 import { submitCheckout, type CheckoutInput } from '@/app/(store)/pedido/actions'
 import { WhatsAppIcon } from '@/components/brand/whatsapp-icon'
+import { LocationFields } from '@/components/store/checkout/location-fields'
 import { ProductImage } from '@/components/store/product-image'
 import { QuantityStepper } from '@/components/store/quantity-stepper'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -22,7 +23,7 @@ import { formatCOP, plural, pluralOf } from '@/lib/format'
 import type { OrderKind } from '@/lib/types'
 
 type Customer = CheckoutInput['customer']
-const EMPTY: Customer = { name: '', phone: '', company: '', document: '', email: '', city: '', address: '', notes: '' }
+const EMPTY: Customer = { name: '', phone: '', company: '', document: '', email: '', department: '', city: '', address: '', notes: '' }
 
 export function CheckoutView() {
   const router = useRouter()
@@ -221,9 +222,18 @@ export function CheckoutView() {
             </div>
             {field('email', 'Correo', { type: 'email', autoComplete: 'email' })}
             <div className="grid gap-4 sm:grid-cols-2">
-              {field('city', kind === 'order' ? 'Ciudad de entrega' : 'Ciudad', { autoComplete: 'address-level2' })}
-              {field('address', kind === 'order' ? 'Dirección de entrega' : 'Dirección', { autoComplete: 'street-address' })}
+              <LocationFields
+                departamento={customer.department ?? ''}
+                ciudad={customer.city ?? ''}
+                onChange={({ departamento, ciudad }) => {
+                  setCustomer((c) => ({ ...c, department: departamento, city: ciudad }))
+                  setErrors(({ department: _d, city: _c, ...rest }) => rest)
+                }}
+                errors={{ departamento: errors.department, ciudad: errors.city }}
+                required={kind === 'order'}
+              />
             </div>
+            {field('address', kind === 'order' ? 'Dirección de entrega' : 'Dirección', { autoComplete: 'street-address' })}
             <Field>
               <FieldLabel htmlFor="checkout-notes">Notas para el asesor</FieldLabel>
               <Textarea id="checkout-notes" value={customer.notes ?? ''} onChange={set('notes')} rows={3} />

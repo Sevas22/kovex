@@ -29,6 +29,7 @@ export interface OrderMessageData {
     document?: string | null
     phone: string
     email?: string | null
+    department?: string | null
     city?: string | null
     address?: string | null
     notes?: string | null
@@ -67,7 +68,7 @@ export function buildOrderMessage(d: OrderMessageData): string {
     c.document && `NIT/CC: ${c.document}`,
     `Teléfono: ${c.phone}`,
     c.email && `Correo: ${c.email}`,
-    c.city && `Ciudad: ${c.city}`,
+    c.city && `Ciudad: ${[c.city, c.department].filter(Boolean).join(', ')}`,
     c.address && `Dirección: ${c.address}`,
     c.notes && `Notas: ${c.notes}`,
   ].filter(Boolean)

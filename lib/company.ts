@@ -6,6 +6,28 @@ export const COMPANY = {
   tagline: 'Tecnología que conecta, soluciones que evolucionan.',
   slogan: 'Compra más. Paga mejor. Haz crecer tu negocio.',
 
+  /**
+   * Cómo escribe la gente el nombre al buscarlo.
+   *
+   * Hoy Google no reconoce «KOVEX» como marca: quien busca «kovexcolombia»
+   * recibe resultados de «kove colombia» (motos) y quien busca «kovex colombia»
+   * de «novex colombia» (capilares). Da por hecho que el usuario se equivocó.
+   * Declarar las variantes es una de las señales con las que aprende que la
+   * marca existe; las otras son de fuera del sitio y no se arreglan con código.
+   */
+  alternateNames: ['KOVEX', 'Kovex', 'Kovex Colombia', 'KOVEX Distribuidor Mayorista'],
+
+  /**
+   * Perfiles oficiales de la marca, para `sameAs` en los datos estructurados.
+   *
+   * Es el campo con el que Google une el sitio con la ficha de empresa y las
+   * redes, y así entiende que todo es la misma entidad. Mientras esté vacío no
+   * se emite `sameAs`: declararlo vacío no suma nada y un perfil inventado
+   * resta. Van las direcciones exactas del perfil de Google Business, Instagram,
+   * Facebook y LinkedIn cuando existan.
+   */
+  profiles: [] as string[],
+
   about:
     'KOVEX Colombia es un distribuidor mayorista multicategoría que conecta negocios, profesionales y hogares con un amplio portafolio de productos, precios competitivos y disponibilidad, a través de una experiencia de compra confiable, moderna y multicanal.',
   aboutDetail:

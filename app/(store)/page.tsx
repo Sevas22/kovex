@@ -76,6 +76,11 @@ export default async function HomePage() {
           '@type': 'Store',
           '@id': `${site}/#organizacion`,
           name: store.businessName,
+          // Las variantes del nombre y los perfiles oficiales son lo que
+          // permite a Google tratar «KOVEX» como una marca y no como un error
+          // de escritura de «kove» o «novex».
+          alternateName: COMPANY.alternateNames,
+          ...(COMPANY.profiles.length ? { sameAs: COMPANY.profiles } : {}),
           url: site,
           logo: `${site}/brand/logo-horizontal.png`,
           image: `${site}/brand/fachada.jpg`,
@@ -111,6 +116,7 @@ export default async function HomePage() {
           '@id': `${site}/#sitio`,
           url: site,
           name: store.businessName,
+          alternateName: COMPANY.alternateNames,
           inLanguage: 'es-CO',
           publisher: { '@id': `${site}/#organizacion` },
           potentialAction: {

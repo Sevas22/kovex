@@ -82,14 +82,34 @@ interface ShopifyProductJs {
   price_min: number
   available: boolean
   images: string[]
-  variants: { sku: string | null }[]
+  variants: { sku: string | null; title?: string; price?: number }[]
 }
 
-export async function fetchSupplierProduct(handle: string): Promise<SupplierProduct | null> {
+/**
+ * Precio de una lista concreta, en pesos.
+ *
+ * Las variantes se llaman «MLP-TLP0014CO11»: lista TLP0014, bodega CO11. Entre
+ * bodegas el precio varía unos pesos, así que se toma el menor. Si el producto
+ * no publica esa lista se devuelve null y el llamador decide.
+ */
+export function priceForList(p: ShopifyProductJs, list: string): number | null {
+  const buscado = list.trim().toUpperCase()
+  let menor: number | null = null
+  for (const v of p.variants) {
+    if (!v.title || typeof v.price !== 'number' || v.price <= 0) continue
+    const m = v.title.toUpperCase().match(/^M(?:LP-)?(.+?)CO\d+$/)
+    if (!m || m[1] !== buscado) continue
+    const pesos = Math.round(v.price / 100)
+    menor = menor == null ? pesos : Math.min(menor, pesos)
+  }
+  return menor
+}
+
+export async function fetchSupplierProduct(handle: string, priceList?: string): Promise<SupplierProduct | null> {
   const res = await fetchFromSupplier(`/products/${encodeURIComponent(handle)}.js`, 'application/json')
   if (res.status === 404) return null
   if (!res.ok) throw new Error(`Texcomercial respondió ${res.status} al pedir ${handle}.`)
-  return normalizeSupplierProduct((await res.json()) as ShopifyProductJs)
+  return normalizeSupplierProduct((await res.json()) as ShopifyProductJs, priceList)
 }
 
 /** Descarga varias fichas con concurrencia limitada para no saturar al proveedor. */
@@ -212,7 +232,7 @@ function parseCategoryPath(tags: string[], department: DepartmentSlug | null): s
   return sub && normalizeText(sub) !== normalizeText(category) ? [name(category), name(sub)] : [name(category)]
 }
 
-export function normalizeSupplierProduct(p: ShopifyProductJs): SupplierProduct {
+export function normalizeSupplierProduct(p: ShopifyProductJs, priceList?: string): SupplierProduct {
   const specs = parseSpecs(p.description)
   const presentation = specs.find((s) => normalizeText(s.label) === 'presentacion')?.value
   const iva = p.tags.map((t) => /^IVA-(\d+(?:\.\d+)?)%$/i.exec(t)).find(Boolean)
@@ -229,7 +249,11 @@ export function normalizeSupplierProduct(p: ShopifyProductJs): SupplierProduct {
     rawTitle: p.title,
     brand: p.vendor ? titleCase(p.vendor) : null,
     supplierSku: p.variants[0]?.sku || null,
-    costPrice: p.price_min > 0 ? Math.round(p.price_min / 100) : null,
+    // La lista que nos factura el proveedor. Sin lista configurada —o si este
+    // producto no la publica— se cae a price_min, que es lo que se hacía antes.
+    costPrice:
+      (priceList ? priceForList(p, priceList) : null) ??
+      (p.price_min > 0 ? Math.round(p.price_min / 100) : null),
     available: p.available,
     images: p.images.slice(0, 6).map((src) => (src.startsWith('//') ? `https:${src}` : src)),
     description: parseDescription(p.description),
@@ -254,7 +278,7 @@ interface ShopifyProductFeed {
   vendor: string
   product_type: string
   tags: string[]
-  variants: { sku: string | null; price: string; available: boolean }[]
+  variants: { sku: string | null; title: string; price: string; available: boolean }[]
   images: { src: string }[]
 }
 
@@ -272,7 +296,11 @@ function fromFeed(p: ShopifyProductFeed): ShopifyProductJs {
     price_min: prices.length ? Math.min(...prices) : 0,
     available: p.variants.some((v) => v.available),
     images: (p.images ?? []).map((i) => i.src),
-    variants: p.variants.map((v) => ({ sku: v.sku })),
+    variants: p.variants.map((v) => ({
+      sku: v.sku,
+      title: v.title,
+      price: Math.round(Number(v.price) * 100),
+    })),
   }
 }
 
@@ -287,12 +315,12 @@ export class SupplierBusyError extends Error {
  * Una página del catálogo del proveedor (hasta 250 productos). Lanza SupplierBusyError
  * cuando responde 429 o con su aviso de límite, para que quien llame espere y reintente.
  */
-export async function fetchSupplierCatalogPage(page: number, limit = 250): Promise<SupplierProduct[]> {
+export async function fetchSupplierCatalogPage(page: number, limit = 250, priceList?: string): Promise<SupplierProduct[]> {
   const res = await fetchFromSupplier(`/products.json?limit=${limit}&page=${page}`, 'application/json')
   if (res.status === 429 || res.status === 430 || res.status === 503) throw new SupplierBusyError()
   if (!res.ok) throw new Error(`Texcomercial respondió ${res.status} al pedir la página ${page}.`)
   const text = await res.text()
   if (text.startsWith('local_rate_limited') || text.startsWith('<')) throw new SupplierBusyError()
   const { products } = JSON.parse(text) as { products: ShopifyProductFeed[] }
-  return products.map((p) => normalizeSupplierProduct(fromFeed(p)))
+  return products.map((p) => normalizeSupplierProduct(fromFeed(p), priceList))
 }

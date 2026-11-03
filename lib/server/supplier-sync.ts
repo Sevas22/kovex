@@ -1,6 +1,7 @@
 import 'server-only'
 import { db } from './db'
 import { recalculatePrices } from './prices'
+import { loadSettings } from './settings'
 import { fetchSupplierProduct, type SupplierProduct } from './texcomercial'
 
 export interface CostChange {
@@ -45,6 +46,7 @@ const handleFromUrl = (url: string) => /\/products\/([^/?#]+)/.exec(url)?.[1] ??
  */
 export async function syncSupplierBatch(limit = 60): Promise<SyncResult> {
   const sql = db()
+  const { supplierPriceList } = await loadSettings(sql)
   const rows = await sql<SyncRow[]>`
     select p.id, p.name, p.source_url, p.cost_price, p.price, p.pricing_mode, p.fixed_price, p.source_available
     from public.products p
@@ -65,7 +67,7 @@ export async function syncSupplierBatch(limit = 60): Promise<SyncResult> {
         continue
       }
       try {
-        fetched.set(row.id, await fetchSupplierProduct(handle))
+        fetched.set(row.id, await fetchSupplierProduct(handle, supplierPriceList))
       } catch {
         fetched.set(row.id, 'error')
       }

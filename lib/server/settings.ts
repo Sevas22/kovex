@@ -8,7 +8,7 @@ export async function loadSettings(sql: Sql | Tx = db()): Promise<StoreSettings>
   const [row] = await sql<StoreSettings[]>`
     select business_name, whatsapp_number, contact_email, contact_phone, address, city,
            default_markup_percent, price_rounding, low_stock_threshold, product_limit,
-           volume_tiers, min_margin_percent, supplier_prices_include_tax
+           volume_tiers, min_margin_percent, supplier_prices_include_tax, supplier_price_list
     from public.store_settings
     where id
   `

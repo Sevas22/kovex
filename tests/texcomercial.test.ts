@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
-import { cleanTitle, normalizeSupplierProduct } from '@/lib/server/texcomercial'
+import { cleanTitle, normalizeSupplierProduct, priceForList } from '@/lib/server/texcomercial'
 
 describe('cleanTitle', () => {
   it('quita los códigos internos numéricos del final', () => {
@@ -68,5 +68,54 @@ describe('normalizeSupplierProduct', () => {
       { label: 'Material de trabajo', value: 'Vinilos, epoxicos, lacas' },
       { label: 'Potencia', value: '6,5 hp' },
     ])
+  })
+})
+
+describe('lista de precios del proveedor', () => {
+  // Precios reales de la brocha: la lista más barata vale 3.604 y la nuestra
+  // 4.027. Tomar la barata por defecto fue el error que infló los márgenes.
+  const brocha = {
+    id: 1,
+    title: 'Brocha Popular 2"',
+    handle: 'brocha',
+    description: '',
+    vendor: 'CARIBE',
+    type: 'FERRETERÍA-Y-CONSTRUCCIÓN',
+    tags: ['IVA-19%'],
+    price_min: 360400,
+    available: true,
+    images: [],
+    variants: [
+      { sku: 'X', title: 'MLP-TLP0032CO11', price: 360400 },
+      { sku: 'X', title: 'MLP-TLP0014CO11', price: 402700 },
+      // Entre bodegas cambia por céntimos: se toma el menor.
+      { sku: 'X', title: 'MLP-TLP0014CO14', price: 402690 },
+      { sku: 'X', title: 'MSIN_LISTACO11', price: 471800 },
+    ],
+  }
+
+  it('toma el precio de la lista pedida, el menor entre bodegas', () => {
+    assert.equal(priceForList(brocha, 'TLP0014'), 4027)
+    assert.equal(priceForList(brocha, 'TLP0032'), 3604)
+  })
+
+  it('entiende MSIN_LISTA, que no lleva el prefijo MLP-', () => {
+    assert.equal(priceForList(brocha, 'SIN_LISTA'), 4718)
+  })
+
+  it('devuelve null cuando el producto no publica esa lista', () => {
+    assert.equal(priceForList(brocha, 'TLP0019'), null)
+  })
+
+  it('usa la lista configurada como costo', () => {
+    assert.equal(normalizeSupplierProduct(brocha, 'TLP0014').costPrice, 4027)
+  })
+
+  it('sin lista configurada se comporta como antes', () => {
+    assert.equal(normalizeSupplierProduct(brocha).costPrice, 3604)
+  })
+
+  it('si falta esa lista cae a price_min en vez de quedarse sin costo', () => {
+    assert.equal(normalizeSupplierProduct(brocha, 'TLP0019').costPrice, 3604)
   })
 })

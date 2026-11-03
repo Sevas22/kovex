@@ -21,6 +21,12 @@ export interface StoreSettings {
   minMarginPercent: number
   /** true = el costo del proveedor ya trae IVA y hay que descontarlo. */
   supplierPricesIncludeTax: boolean
+  /**
+   * Lista de precios con la que el proveedor le factura a KOVEX, p. ej.
+   * «TLP0014». Texcomercial publica una variante por lista y bodega; sin esto
+   * se tomaba la más barata y el costo quedaba muy por debajo del real.
+   */
+  supplierPriceList: string
 }
 
 /** Datos públicos de la tienda que necesitan los componentes de cliente. */

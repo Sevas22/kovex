@@ -29,10 +29,10 @@ const PAGE_SIZE = 250
 const LOTE = 100
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
-async function pageWithRetry(page: number, pausa: number): Promise<SupplierProduct[]> {
+async function pageWithRetry(page: number, pausa: number, lista: string): Promise<SupplierProduct[]> {
   for (let intento = 1; intento <= 6; intento++) {
     try {
-      return await fetchSupplierCatalogPage(page, PAGE_SIZE)
+      return await fetchSupplierCatalogPage(page, PAGE_SIZE, lista)
     } catch (error) {
       if (!(error instanceof SupplierBusyError) && intento === 6) throw error
       const espera = pausa * intento * 2
@@ -44,6 +44,8 @@ async function pageWithRetry(page: number, pausa: number): Promise<SupplierProdu
 }
 
 async function main() {
+  // El costo sale de la lista que nos factura el proveedor, no de la más barata.
+  const { supplierPriceList: lista } = await loadSettings()
   const sql = db()
   const settings = await loadSettings()
   const [{ count: yaHay }] = await sql<{ count: number }[]>`select count(*)::int as count from public.products`
@@ -67,7 +69,7 @@ async function main() {
   const inicio = Date.now()
 
   for (let page = 1; page <= 100; page++) {
-    const productos = await pageWithRetry(page, pausa)
+    const productos = await pageWithRetry(page, pausa, lista)
     if (productos.length === 0) break
     vistos += productos.length
 

@@ -39,11 +39,15 @@ export function DepartmentNav({ departments }: { departments: CategoryLink[] }) 
             )
           })}
           <li>
+            {/* Distintivo rojo: los departamentos son permanentes y van en el
+                azul de la barra; esto es temporal y tiene que saltar a la vista
+                o se pierde entre ellos. */}
             <Link
               href="/temporadas"
               className={cn(
-                "flex h-full items-center gap-2 px-3 text-sm whitespace-nowrap transition-colors",
-                pathname === "/temporadas" ? "bg-white/10 text-white" : "text-white/70 hover:text-white",
+                // h-7 con my-2.5 deja la píldora centrada en la barra de 48 px.
+                'my-2.5 ml-3 flex h-7 items-center gap-1.5 rounded-full px-3.5 text-sm font-semibold whitespace-nowrap text-white shadow-sm transition-colors',
+                pathname === '/temporadas' ? 'bg-brand-red-600' : 'bg-brand-red hover:bg-brand-red-600',
               )}
             >
               <SparklesIcon className="size-4" aria-hidden="true" />

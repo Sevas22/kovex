@@ -1,6 +1,6 @@
 'use client'
 
-import { MenuIcon } from 'lucide-react'
+import { MenuIcon, SparklesIcon } from 'lucide-react'
 import Link from 'next/link'
 import { useState } from 'react'
 import { Logo } from '@/components/brand/logo'
@@ -38,12 +38,22 @@ export function MobileNav({ departments, whatsappUrl }: { departments: CategoryL
               {d.name}
             </Link>
           ))}
+          {/* Junto a los departamentos y con el mismo distintivo rojo que en
+              escritorio. Estaba enterrada entre «Preguntas frecuentes» y
+              «Blog», donde nadie la ve, y en el teléfono compra la mayoría. */}
+          <Link
+            href="/temporadas"
+            onClick={close}
+            className="mt-1 flex items-center gap-2 self-start rounded-full bg-brand-red px-3.5 py-2 text-sm font-semibold text-white"
+          >
+            <SparklesIcon className="size-4" aria-hidden="true" />
+            Temporadas
+          </Link>
           <Separator className="my-2" />
           {[
             ['/#nosotros', 'Nosotros'],
             ['/#como-comprar', 'Cómo comprar'],
             ['/#preguntas', 'Preguntas frecuentes'],
-            ['/temporadas', 'Temporadas'],
             ['/blog', 'Blog'],
             ['/admin', 'Panel administrativo'],
           ].map(([href, label]) => (

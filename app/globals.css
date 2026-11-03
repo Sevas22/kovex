@@ -17,6 +17,8 @@
   --color-brand-cyan: var(--brand-cyan);
   --color-brand-steel: var(--brand-steel);
   --color-brand-mist: var(--brand-mist);
+  --color-brand-red: var(--brand-red);
+  --color-brand-red-600: var(--brand-red-600);
   --color-whatsapp: var(--whatsapp);
   --color-whatsapp-600: var(--whatsapp-600);
   --color-success: var(--success);
@@ -73,6 +75,12 @@
   --brand-cyan: #00c8ff; /* Celeste */
   --brand-steel: #a7b0bd; /* Gris acero */
   --brand-mist: #eef1f5;
+  /* Acento promocional. No está en el manual: la paleta es toda fría (azules y
+     grises), así que un rojo cálido es lo único que destaca de verdad sobre la
+     barra azul. Se reserva para lo temporal —temporadas, campañas—, para que no
+     pierda fuerza. Con texto blanco da 4,8:1 de contraste. */
+  --brand-red: #e11d48;
+  --brand-red-600: #be123c;
   --whatsapp: #25d366;
   --whatsapp-600: #1da851;
   --success: #0f8a4f;

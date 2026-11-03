@@ -24,6 +24,7 @@ import { recalculatePrices } from '@/lib/server/prices'
 
 const CACHE = 'scripts/cache-listas.json'
 const SIN_LISTA = 'informe-sin-lista.csv'
+const RESPALDO_OCULTOS = 'scripts/respaldo-sin-lista.json'
 const args = process.argv.slice(2)
 const flag = (name: string) => args.includes(name)
 const valor = (name: string) => {
@@ -256,8 +257,39 @@ async function aplicar(lista: string, guardar: boolean) {
   await sql.end()
 }
 
+/**
+ * Oculta los productos que ya no tienen ninguna lista de precio.
+ *
+ * Sin lista publicada el proveedor no los vende, así que su costo guardado no
+ * corresponde a nada: publicarles precio es ofrecer algo que no se despacha.
+ */
+async function ocultarSinLista(guardar: boolean) {
+  const sql = db()
+  const sinNinguna = cargar().filter((f) => Object.keys(f.listas).length === 0)
+  const visibles = await sql<{ id: number; name: string }[]>`
+    select id, name from public.products
+    where is_active and id = any(${sinNinguna.map((f) => f.id)}) order by id
+  `
+  for (const p of visibles) console.log(`  ocultar  ${String(p.id).padStart(4)}  ${p.name.slice(0, 56)}`)
+  console.log(`\n${visibles.length} productos visibles sin ninguna lista de precio`)
+
+  if (!guardar) {
+    console.log('\nPlan únicamente. Añade --aplicar para ocultarlos.')
+    await sql.end()
+    return
+  }
+  const ids = visibles.map((p) => p.id)
+  writeFileSync(RESPALDO_OCULTOS, JSON.stringify(ids, null, 2))
+  const filas = await sql<{ id: number }[]>`
+    update public.products set is_active = false where id = any(${ids}) returning id
+  `
+  console.log(`\n${filas.length} productos ocultos · respaldo en ${RESPALDO_OCULTOS}`)
+  await sql.end()
+}
+
 async function main() {
   if (flag('--descubrir')) return descubrir()
+  if (flag('--ocultar-sin-lista')) return ocultarSinLista(flag('--aplicar'))
 
   if (flag('--identificar')) {
     const precios = args

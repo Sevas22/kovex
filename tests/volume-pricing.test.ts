@@ -47,6 +47,17 @@ describe('escalas por cantidad', () => {
     ])
   })
 
+  // El catálogo entrega price = null cuando el precio está oculto («a cotizar»).
+  // Entonces no hay de qué descontar y la escalera va vacía: por eso, con los
+  // precios apagados, configurar una escala no se ve en la tienda.
+  it('no arma escalera si el precio está oculto', () => {
+    assert.deepEqual(buildPriceTiers({ listPrice: null, tiers: TIERS, floorPrice: 5000, rounding: 100 }), [])
+  })
+
+  it('sin escalones configurados no hay escalera', () => {
+    assert.deepEqual(buildPriceTiers({ listPrice: 10000, tiers: [], floorPrice: null, rounding: 100 }), [])
+  })
+
   it('nunca baja del piso de costo + margen mínimo', () => {
     const floor = floorPriceFor(9200, 0)
     const tiers = buildPriceTiers({ listPrice: 10000, tiers: TIERS, floorPrice: floor, rounding: 100 })

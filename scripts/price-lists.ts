@@ -20,6 +20,7 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { toCsv } from '@/lib/csv'
 import { db } from '@/lib/server/db'
+import { recalculatePrices } from '@/lib/server/prices'
 
 const CACHE = 'scripts/cache-listas.json'
 const SIN_LISTA = 'informe-sin-lista.csv'
@@ -243,7 +244,15 @@ async function aplicar(lista: string, guardar: boolean) {
     await sql`update public.products set cost_price = ${c.despues} where id = ${c.id}`
   }
   console.log(`\n${cambios.length} costos actualizados.`)
-  console.log('Siguiente paso: recalcular los precios de venta con los márgenes del panel.')
+
+  // El precio de venta sale del costo por el margen, así que hay que rehacerlo
+  // en el mismo paso: dejar el costo nuevo con el precio viejo sería publicar
+  // márgenes que no existen.
+  const recalculados = await recalculatePrices(
+    sql,
+    cambios.map((c) => c.id),
+  )
+  console.log(`${recalculados} precios de venta recalculados con los márgenes del panel.`)
   await sql.end()
 }
 

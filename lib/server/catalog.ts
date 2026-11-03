@@ -128,7 +128,7 @@ export const getDepartments = cache(async (): Promise<Department[]> => {
     left join public.products p on p.category_id = t.id and p.is_active
     where d.parent_id is null and d.is_active
     group by d.id
-    order by d.sort_order
+    order by d.name
   `
 })
 

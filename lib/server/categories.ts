@@ -8,7 +8,9 @@ export async function loadCategories(sql: Sql | Tx = db()): Promise<Category[]> 
   return sql<Category[]>`
     select id, parent_id, slug, name, description, icon, markup_percent, volume_tiers, sort_order, is_active
     from public.categories
-    order by sort_order, name
+    -- Alfabético, no por sort_order: el comprador que busca una categoría la
+    -- busca por su nombre, no recuerda en qué posición la pusimos.
+    order by name
   `
 }
 

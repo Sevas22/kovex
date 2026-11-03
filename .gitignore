@@ -25,3 +25,6 @@ scripts/respaldo-categorias*.json
 
 # Informes que se regeneran (pnpm catalog:audit-images)
 informe-fotos.csv
+
+# Respaldo de los productos ocultados por estar de baja en el proveedor
+scripts/respaldo-bajas.json

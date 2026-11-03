@@ -30,6 +30,9 @@ interface Row {
   isActive: boolean
   price: number | null
   sourceUrl: string | null
+  /** Departamento (categoría raíz): el cliente revisa el catálogo por ahí. */
+  departamento: string | null
+  categoria: string | null
 }
 
 type Estado = 'de baja' | 'sin foto' | 'no se pudo consultar'
@@ -56,23 +59,42 @@ async function estadoEnProveedor(sourceUrl: string | null): Promise<Estado> {
 async function main() {
   const sql = db()
   const rows = await sql<Row[]>`
-    select id, name, brand, sku, is_active, price, source_url
-    from public.products
-    where cardinality(images) = 0
-    order by brand nulls last, name
+    with recursive tree as (
+      select id, id as root from public.categories where parent_id is null
+      union all
+      select c.id, t.root from public.categories c join tree t on c.parent_id = t.id
+    )
+    select p.id, p.name, p.brand, p.sku, p.is_active, p.price, p.source_url,
+           raiz.name as departamento, c.name as categoria
+    from public.products p
+    left join public.categories c on c.id = p.category_id
+    left join tree t on t.id = p.category_id
+    left join public.categories raiz on raiz.id = t.root
+    where cardinality(p.images) = 0
+    order by raiz.name nulls last, p.brand nulls last, p.name
   `
   console.log(`${rows.length} productos sin foto · consultando al proveedor…`)
 
   const filas: (string | number | null)[][] = []
   const cuenta: Record<Estado, number> = { 'de baja': 0, 'sin foto': 0, 'no se pudo consultar': 0 }
+  /** Conteo por departamento, que es como el cliente revisa el catálogo. */
+  const porDepartamento = new Map<string, { baja: number; sinFoto: number }>()
 
   for (const [i, r] of rows.entries()) {
     const estado = await estadoEnProveedor(r.sourceUrl)
     cuenta[estado]++
+    const dep = r.departamento ?? '(sin departamento)'
+    const acc = porDepartamento.get(dep) ?? { baja: 0, sinFoto: 0 }
+    if (estado === 'de baja') acc.baja++
+    else acc.sinFoto++
+    porDepartamento.set(dep, acc)
+
     filas.push([
       r.id,
       estado,
       r.isActive ? 'sí' : 'no',
+      r.departamento,
+      r.categoria,
       r.brand,
       r.name,
       r.sku,
@@ -87,11 +109,27 @@ async function main() {
   writeFileSync(
     SALIDA,
     toCsv(
-      ['id', 'estado', 'visible en la tienda', 'marca', 'producto', 'sku', 'precio', 'ficha del proveedor', 'qué hacer'],
+      [
+        'id',
+        'estado',
+        'visible en la tienda',
+        'departamento',
+        'categoría',
+        'marca',
+        'producto',
+        'sku',
+        'precio',
+        'ficha del proveedor',
+        'qué hacer',
+      ],
       filas,
     ),
   )
 
+  console.log('\n  departamento        de baja   sin foto')
+  for (const [dep, n] of [...porDepartamento].sort((a, b) => b[1].baja + b[1].sinFoto - (a[1].baja + a[1].sinFoto))) {
+    console.log(`  ${dep.padEnd(20)} ${String(n.baja).padStart(5)} ${String(n.sinFoto).padStart(10)}`)
+  }
   console.log(`\nde baja en el proveedor:  ${cuenta['de baja']}`)
   console.log(`a la venta, sin foto:     ${cuenta['sin foto']}`)
   if (cuenta['no se pudo consultar']) console.log(`no se pudo consultar:     ${cuenta['no se pudo consultar']}`)

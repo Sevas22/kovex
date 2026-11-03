@@ -28,3 +28,4 @@ informe-fotos.csv
 
 # Respaldo de los productos ocultados por estar de baja en el proveedor
 scripts/respaldo-bajas.json
+scripts/respaldo-sin-foto.json

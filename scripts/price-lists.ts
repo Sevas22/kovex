@@ -25,13 +25,16 @@ import { recalculatePrices } from '@/lib/server/prices'
 const CACHE = 'scripts/cache-listas.json'
 const SIN_LISTA = 'informe-sin-lista.csv'
 const RESPALDO_OCULTOS = 'scripts/respaldo-sin-lista.json'
+const EXPORTACION = 'precios-proveedor.csv'
 const args = process.argv.slice(2)
 const flag = (name: string) => args.includes(name)
 const valor = (name: string) => {
   const i = args.indexOf(name)
   return i >= 0 ? args[i + 1] : undefined
 }
-const TRABAJADORES = 6
+// Tres y no seis: con seis, el proveedor empieza a devolver 429 y se pierden
+// consultas en masa. Más lento, pero completo.
+const TRABAJADORES = 2
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
 interface Producto {
@@ -84,7 +87,7 @@ async function variantesDe(sourceUrl: string): Promise<Listas | null> {
     } catch {
       // límite de peticiones o red
     }
-    await sleep(1200 * intento)
+    await sleep(2500 * intento)
   }
   return null
 }
@@ -97,24 +100,52 @@ async function descubrir() {
   `
   console.log(`${productos.length} productos · bajando listas de precio…`)
 
+  // Lo que ya se sabía. Un fallo de red no puede borrar un precio conocido: la
+  // primera versión de esto trató «no pude preguntar» como «no tiene precio» y
+  // dejó 1.433 productos aparentemente sin precio cuando el proveedor solo
+  // estaba limitando las peticiones.
+  const previo = new Map<number, Listas>(
+    existsSync(CACHE) ? cargar().map((f) => [f.id, f.listas]) : [],
+  )
+
   const filas: Fila[] = []
   let sinDatos = 0
+  let noSePudo = 0
   let siguiente = 0
   async function trabajador() {
     while (siguiente < productos.length) {
       const p = productos[siguiente++]
+      const antes = previo.get(p.id)
+      // Reanudable: lo que ya tiene precio no se vuelve a pedir.
+      if (!flag('--rehacer') && antes && Object.keys(antes).length > 0) {
+        filas.push({ id: p.id, name: p.name, sku: p.sku, costPrice: p.costPrice, listas: antes })
+        continue
+      }
+
       const listas = await variantesDe(p.sourceUrl)
-      if (listas == null || Object.keys(listas).length === 0) sinDatos++
-      filas.push({ id: p.id, name: p.name, sku: p.sku, costPrice: p.costPrice, listas: listas ?? {} })
+      if (listas == null) {
+        noSePudo++
+        // Se conserva lo anterior, sea lo que sea; nunca se degrada.
+        filas.push({ id: p.id, name: p.name, sku: p.sku, costPrice: p.costPrice, listas: antes ?? {} })
+        await sleep(400)
+        continue
+      }
+      if (Object.keys(listas).length === 0) sinDatos++
+      filas.push({ id: p.id, name: p.name, sku: p.sku, costPrice: p.costPrice, listas })
       if (filas.length % 100 === 0) console.log(`   ${filas.length}/${productos.length}`)
-      await sleep(200)
+      await sleep(900)
     }
   }
   await Promise.all(Array.from({ length: TRABAJADORES }, trabajador))
 
   filas.sort((a, b) => a.id - b.id)
   writeFileSync(CACHE, JSON.stringify(filas))
-  console.log(`\n${filas.length} productos · ${sinDatos} sin listas publicadas`)
+  const conPrecio = filas.filter((f) => Object.keys(f.listas).length > 0).length
+  console.log(`\n${filas.length} productos · ${conPrecio} con precio · ${sinDatos} confirmados sin listas`)
+  if (noSePudo) {
+    console.log(`${noSePudo} no se pudieron consultar (el proveedor limita las peticiones).`)
+    console.log('Vuelve a correr el comando: retoma solo los que faltan.')
+  }
   resumenDeListas(filas)
   await sql.end()
 }
@@ -287,9 +318,107 @@ async function ocultarSinLista(guardar: boolean) {
   await sql.end()
 }
 
+/**
+ * Exporta todo el catálogo con su código de proveedor y el precio de cada lista.
+ *
+ * El código es el SKU: es el que usa Texcomercial y el que permite cruzar esta
+ * tabla con una factura o un pedido suyo. Se exportan todas las listas, no solo
+ * la nuestra, para poder comparar y negociar.
+ */
+async function exportar(lista: string) {
+  const sql = db()
+  const filas = cargar()
+
+  const datos = await sql<
+    {
+      id: number
+      name: string
+      sku: string
+      brand: string | null
+      costPrice: number | null
+      price: number | null
+      isActive: boolean
+      showPrice: boolean
+      sourceUrl: string | null
+      departamento: string | null
+      categoria: string | null
+    }[]
+  >`
+    with recursive tree as (
+      select id, id as root from public.categories where parent_id is null
+      union all
+      select c.id, t.root from public.categories c join tree t on c.parent_id = t.id
+    )
+    select p.id, p.name, p.sku, p.brand, p.cost_price, p.price, p.is_active, p.show_price,
+           p.source_url, raiz.name as departamento, c.name as categoria
+    from public.products p
+    left join public.categories c on c.id = p.category_id
+    left join tree t on t.id = p.category_id
+    left join public.categories raiz on raiz.id = t.root
+    order by raiz.name nulls last, p.name
+  `
+
+  const porId = new Map(filas.map((f) => [f.id, f.listas]))
+  // Todas las listas que aparecen en el catálogo, para armar las columnas.
+  const columnas = [...new Set(filas.flatMap((f) => Object.keys(f.listas)))].sort()
+
+  const cuerpo = datos.map((d) => {
+    const listas = porId.get(d.id) ?? {}
+    const nuestra = listas[lista] ?? null
+    return [
+      d.sku,
+      d.name,
+      d.brand,
+      d.departamento,
+      d.categoria,
+      nuestra,
+      d.costPrice,
+      d.price,
+      // Margen sobre el precio del proveedor, en puntos porcentuales.
+      d.price != null && nuestra ? Math.round(((d.price - nuestra) / nuestra) * 1000) / 10 : null,
+      d.isActive ? 'sí' : 'no',
+      d.showPrice ? 'sí' : 'no',
+      d.sourceUrl,
+      d.id,
+      ...columnas.map((c) => listas[c] ?? null),
+    ]
+  })
+
+  writeFileSync(
+    EXPORTACION,
+    toCsv(
+      [
+        'codigo proveedor (sku)',
+        'producto',
+        'marca',
+        'departamento',
+        'categoria',
+        `precio proveedor (${lista})`,
+        'costo guardado',
+        'precio de venta kovex',
+        'margen %',
+        'visible',
+        'precio publicado',
+        'ficha del proveedor',
+        'id interno',
+        ...columnas.map((c) => `lista ${c}`),
+      ],
+      cuerpo,
+    ),
+  )
+
+  const conPrecio = cuerpo.filter((f) => f[5] != null).length
+  console.log(`${datos.length} productos exportados → ${EXPORTACION}`)
+  console.log(`  con precio en la lista ${lista}: ${conPrecio}`)
+  console.log(`  sin precio (el proveedor ya no los publica): ${datos.length - conPrecio}`)
+  console.log(`  columnas de lista incluidas: ${columnas.join(', ')}`)
+  await sql.end()
+}
+
 async function main() {
   if (flag('--descubrir')) return descubrir()
   if (flag('--ocultar-sin-lista')) return ocultarSinLista(flag('--aplicar'))
+  if (flag('--exportar')) return exportar(valor('--lista') ?? 'TLP0014')
 
   if (flag('--identificar')) {
     const precios = args

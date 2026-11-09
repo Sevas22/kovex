@@ -31,6 +31,362 @@ export interface Post {
 
 export const POSTS: Post[] = [
   {
+    slug: 'como-surtir-un-almacen-de-electrodomesticos',
+    titulo: 'Cómo surtir un almacén de electrodomésticos sin dejar la plata quieta',
+    resumen:
+      'Qué referencias comprar primero, cuántas unidades por modelo y por qué el electrodoméstico grande se maneja distinto al pequeño.',
+    fecha: '2026-11-09',
+    minutos: 8,
+    etiqueta: 'Electro',
+    cuerpo: [
+      {
+        t: 'p',
+        x: 'El electrodoméstico es el producto que más plata inmoviliza por metro cuadrado de bodega. Una nevera ocupa el espacio de cuarenta ollas y cuesta lo mismo que doscientas. Por eso surtir un almacén de electro no se parece en nada a surtir una tienda: aquí cada decisión de compra es una apuesta grande.',
+      },
+      { t: 'h2', x: 'Separa la línea blanca de la línea pequeña: son dos negocios' },
+      {
+        t: 'p',
+        x: 'La línea blanca —neveras, lavadoras, estufas— se vende poco y deja mucho por unidad. La línea pequeña —licuadoras, planchas, freidoras— se vende mucho y deja poco por unidad. Mezclarlas en el mismo criterio de compra es el error más caro.',
+      },
+      {
+        t: 'p',
+        x: 'En línea blanca compra por modelo, no por cantidad: una o dos unidades de cada referencia, y repón cuando se venda. En línea pequeña compra por rotación: pide por caja de las tres o cuatro referencias que más salen, porque ahí el riesgo de quedarte con una es bajo.',
+      },
+      { t: 'h2', x: 'La exhibición vende, pero el inventario es otra cosa' },
+      {
+        t: 'p',
+        x: 'Un cliente compra una nevera que puede abrir y tocar. Pero no necesitas tener en bodega todas las que exhibes. La práctica que mejor funciona es tener una unidad de exhibición por referencia y pedirle al proveedor despacho rápido para la reposición.',
+      },
+      {
+        t: 'p',
+        x: 'Eso convierte el almacén en una sala de muestra con respaldo, no en una bodega llena. La diferencia en flujo de caja es enorme: con el mismo capital exhibes el triple de modelos.',
+      },
+      { t: 'h2', x: 'Cuántas unidades por referencia, en la práctica' },
+      {
+        t: 'ol',
+        x: [
+          'Línea blanca que ya conoces: una exhibida y una en bodega. Si se vende en menos de dos semanas, sube a dos en bodega.',
+          'Línea blanca nueva: una sola, exhibida. Hasta que no se venda la primera, no pidas la segunda.',
+          'Línea pequeña de alta rotación: lo que vendas en tres semanas. Menos te deja sin stock; más es plata quieta.',
+          'Combos y promociones: solo lo que puedas vender en el periodo de la promoción. Cuando se acaba la campaña, se queda.',
+        ],
+      },
+      { t: 'h2', x: 'El servicio técnico decide qué marcas te convienen' },
+      {
+        t: 'p',
+        x: 'En electrodomésticos no vendes solo el aparato: vendes la tranquilidad de que si falla, alguien responde. Antes de cargar inventario de una marca, averigua si tiene servicio técnico en tu ciudad. Una marca barata sin taller cerca termina costándote clientes.',
+      },
+      {
+        t: 'p',
+        x: 'Marcas como Haceb, Mabe y Electrolux tienen red nacional, y eso se traduce en que el cliente las compra con menos dudas. Una referencia desconocida puede dejar mejor margen y aun así rotar peor, porque el comprador duda.',
+      },
+      { t: 'h2', x: 'Los meses mandan más de lo que crees' },
+      {
+        t: 'p',
+        x: 'El electrodoméstico tiene estacionalidad fuerte en Colombia: prima de junio, prima de diciembre y temporada escolar mueven la línea pequeña; las primas mueven la línea blanca. Comprar en febrero lo que se vende en junio es financiar cuatro meses de bodega.',
+      },
+      {
+        t: 'p',
+        x: 'La regla simple: carga inventario tres o cuatro semanas antes de la temporada, no tres meses. Y negocia con el proveedor que te despache rápido en vez de comprar por anticipado.',
+      },
+      { t: 'h2', x: 'Qué preguntarle al mayorista antes de cargar' },
+      {
+        t: 'ul',
+        x: [
+          '¿En cuántos días me despachan una reposición? Si son dos días, puedes tener menos inventario.',
+          '¿Hay precio escalonado por cantidad? En línea pequeña suele haberlo y cambia el cálculo.',
+          '¿Quién responde la garantía: el mayorista o la marca? Define a dónde mandas al cliente.',
+          '¿El precio incluye IVA? En electro la diferencia del 19 % sobre una nevera es plata de verdad.',
+          '¿Hay flete incluido o va aparte? Una nevera viaja caro y cambia el margen.',
+        ],
+      },
+      {
+        t: 'cita',
+        x: 'En electrodomésticos no gana quien tiene más inventario, sino quien repone más rápido.',
+      },
+    ],
+  },
+
+  {
+    slug: 'iva-en-compras-al-por-mayor',
+    titulo: 'El IVA en las compras al por mayor: qué descuentas y qué pagas de verdad',
+    resumen:
+      'Por qué el IVA no es un costo si estás bien registrado, cómo afecta tu margen real y los errores que más plata cuestan al calcular precios.',
+    fecha: '2026-11-10',
+    minutos: 7,
+    etiqueta: 'Finanzas',
+    cuerpo: [
+      {
+        t: 'p',
+        x: 'Muchos negocios calculan su margen sobre el precio con IVA incluido y creen que están ganando más de lo que ganan. Otros lo calculan sin IVA y creen que ganan menos. Entender dónde está el impuesto en tu cadena es lo que separa un precio bien puesto de uno que te deja trabajando para la DIAN.',
+      },
+      {
+        t: 'p',
+        x: 'Lo que sigue es cómo funciona en la práctica. Tu contador tiene la última palabra sobre tu caso: aquí va lo que necesitas entender para poner precios, no para declarar.',
+      },
+      { t: 'h2', x: 'El IVA que pagas al comprar no es tuyo, es un anticipo' },
+      {
+        t: 'p',
+        x: 'Si eres responsable de IVA, el impuesto que pagas al mayorista no es un costo: es plata que después descuentas del IVA que le cobras a tus clientes. En la jerga se llama IVA descontable, y es la razón por la que dos negocios pueden comprar al mismo precio y tener márgenes distintos.',
+      },
+      {
+        t: 'p',
+        x: 'Si no eres responsable de IVA, la historia cambia por completo: el impuesto que pagas sí es costo, porque no lo puedes descontar. Tu precio de compra real es el precio con IVA, y así hay que calcular el margen.',
+      },
+      { t: 'h2', x: 'Calcula siempre el margen sobre valores sin IVA' },
+      {
+        t: 'p',
+        x: 'Esta es la parte donde más gente se equivoca. Si compras algo en $119.000 con IVA incluido y lo vendes en $150.000 con IVA incluido, no ganaste $31.000.',
+      },
+      {
+        t: 'ol',
+        x: [
+          'Tu costo sin IVA es $100.000 (119.000 ÷ 1,19).',
+          'Tu venta sin IVA es $126.050 (150.000 ÷ 1,19).',
+          'Tu margen real es $26.050, no $31.000.',
+          'Los $4.950 de diferencia son IVA que recaudaste y tienes que entregar.',
+        ],
+      },
+      {
+        t: 'p',
+        x: 'La regla es simple: quita el IVA de los dos lados antes de restar. Comparar un precio con IVA contra uno sin IVA infla el margen un 19 % que no existe.',
+      },
+      { t: 'h2', x: 'Pregunta siempre si el precio publicado incluye IVA' },
+      {
+        t: 'p',
+        x: 'En Colombia unos mayoristas publican con IVA y otros sin IVA, y la diferencia es del 19 %. Un proveedor que parece más barato puede estar mostrando el precio sin impuesto. Es la comparación más frecuente que sale mal.',
+      },
+      {
+        t: 'p',
+        x: 'Antes de comparar dos cotizaciones, ponlas en la misma base. Si una viene con IVA y otra sin IVA, divide la primera entre 1,19 y ahí sí compara.',
+      },
+      { t: 'h2', x: 'No todo tiene 19 %' },
+      {
+        t: 'p',
+        x: 'No todos los productos llevan la tarifa general. Hay bienes exentos y excluidos, y varios insumos agropecuarios tienen tratamiento distinto. Si tu negocio mezcla líneas —ferretería con agro, por ejemplo—, no apliques el mismo porcentaje a todo el inventario.',
+      },
+      {
+        t: 'p',
+        x: 'La factura del proveedor dice la tarifa de cada ítem. Vale la pena revisarla la primera vez que compras una línea nueva, porque un supuesto equivocado se repite en todos los precios que calcules después.',
+      },
+      { t: 'h2', x: 'Tres errores que cuestan plata todos los meses' },
+      {
+        t: 'ul',
+        x: [
+          'Poner el precio de venta aplicando el margen sobre el costo con IVA. El precio queda corto y el margen real es menor al que crees.',
+          'Olvidar que el IVA recaudado no es tuyo. Se ve plata en caja que ya está comprometida con la declaración.',
+          'Comparar proveedores sin verificar si publican con o sin impuesto. Una diferencia del 19 % cambia cuál conviene.',
+        ],
+      },
+      {
+        t: 'cita',
+        x: 'El margen se calcula sin IVA, de los dos lados. Todo lo demás es contarse un cuento.',
+      },
+    ],
+  },
+
+  {
+    slug: 'como-ser-distribuidor-en-colombia',
+    titulo: 'Cómo volverte distribuidor: qué piden los mayoristas en Colombia',
+    resumen:
+      'Los requisitos reales para abrir cuenta con un mayorista, qué documentos tener listos y cómo conseguir mejores condiciones desde el primer pedido.',
+    fecha: '2026-11-11',
+    minutos: 6,
+    etiqueta: 'Guías',
+    cuerpo: [
+      {
+        t: 'p',
+        x: 'Comprar al por mayor no exige ser una empresa grande, pero sí exige estar en orden. La mayoría de los mayoristas no piden volúmenes imposibles: piden que puedas facturar, que te puedan ubicar y que el primer pedido no sea un salto al vacío para ninguno de los dos.',
+      },
+      { t: 'h2', x: 'Lo que casi siempre te van a pedir' },
+      {
+        t: 'ul',
+        x: [
+          'RUT actualizado. Es el documento base: dice quién eres ante la DIAN y si eres responsable de IVA.',
+          'Cámara de comercio, si estás constituido como empresa. Para persona natural con establecimiento, el registro mercantil.',
+          'Datos de contacto y dirección de despacho reales. Suena obvio, pero es donde más se traba el primer pedido.',
+          'Cuenta bancaria a nombre del negocio, si vas a pedir plazo de pago.',
+        ],
+      },
+      {
+        t: 'p',
+        x: 'Con eso basta para abrir cuenta en la mayoría. Lo que no suele pedirse —y mucha gente cree que sí— es un volumen mínimo mensual ni un local grande.',
+      },
+      { t: 'h2', x: 'Persona natural o empresa: cuál te conviene' },
+      {
+        t: 'p',
+        x: 'Si estás arrancando, persona natural con RUT y registro mercantil es más rápido y más barato. Si vas a manejar volumen, buscar crédito o vender a empresas que exigen factura electrónica con todas las de la ley, constituirte conviene más.',
+      },
+      {
+        t: 'p',
+        x: 'No es una decisión que tengas que tomar hoy: casi todos empiezan como persona natural y se constituyen cuando el volumen lo pide. Lo que sí conviene desde el día uno es tener el RUT al día.',
+      },
+      { t: 'h2', x: 'El plazo de pago no se pide: se gana' },
+      {
+        t: 'p',
+        x: 'Casi nadie da crédito en el primer pedido, y es razonable. La forma de conseguirlo es previsible: compra de contado dos o tres veces, paga puntual, y pide plazo en la cuarta. Un historial corto pero limpio pesa más que un discurso sobre tus proyecciones.',
+      },
+      {
+        t: 'p',
+        x: 'Cuando lo pidas, pide poco: ocho o quince días sobre un pedido mediano. Es más fácil que te den quince días y luego treinta, que treinta de entrada.',
+      },
+      { t: 'h2', x: 'Cómo conseguir mejor precio sin tener volumen todavía' },
+      {
+        t: 'ol',
+        x: [
+          'Concentra. Comprar lo mismo en tres proveedores te deja sin peso en ninguno; concentrar te da con qué negociar.',
+          'Pregunta por el precio escalonado. Muchos bajan el precio por cantidad y no lo publican.',
+          'Agrupa pedidos. En vez de pedir cada semana, pide cada quince días: menos fletes y mejor escalón de precio.',
+          'Sé predecible. Un cliente que pide lo mismo todos los meses vale más que uno que pide el doble una vez al año.',
+        ],
+      },
+      { t: 'h2', x: 'La señal de que elegiste bien' },
+      {
+        t: 'p',
+        x: 'No es el catálogo ni el precio de la primera cotización. Es qué pasa cuando algo sale mal: cuando llega incompleto, cuando el producto sale defectuoso, cuando necesitas algo con afán. Ahí se ve si tienes un proveedor o solo una lista de precios.',
+      },
+      {
+        t: 'cita',
+        x: 'Al mayorista no lo convences con proyecciones. Lo convences pagando puntual tres veces seguidas.',
+      },
+    ],
+  },
+
+  {
+    slug: 'que-surtir-en-un-almacen-agro',
+    titulo: 'Qué surtir en un almacén agro: lo que de verdad rota en el campo',
+    resumen:
+      'Las líneas que sostienen un almacén agropecuario, por qué el empaque y la cuerda se venden todo el año y cómo manejar lo estacional.',
+    fecha: '2026-11-12',
+    minutos: 7,
+    etiqueta: 'Agro',
+    cuerpo: [
+      {
+        t: 'p',
+        x: 'El almacén agro tiene un problema que otros negocios no: su cliente compra según el calendario de la cosecha, no según el calendario comercial. Surtir bien es entender qué se vende todas las semanas y qué se vende tres veces al año.',
+      },
+      { t: 'h2', x: 'Lo que se vende todo el año es lo que sostiene el negocio' },
+      {
+        t: 'p',
+        x: 'Hay una base que rota sin importar la temporada: empaque, cuerda, herramienta de mano y elementos de riego. No es lo más emocionante del catálogo ni lo que deja mejor margen por unidad, pero es lo que paga el arriendo en los meses flojos.',
+      },
+      {
+        t: 'p',
+        x: 'El saco de polipropileno es el caso típico: nadie lo exhibe con orgullo y se vende todas las semanas. Lo mismo la cuerda y el lazo: productos de consumo constante que el campesino repone sin pensarlo.',
+      },
+      { t: 'h2', x: 'Las cuatro líneas que no pueden faltar' },
+      {
+        t: 'ol',
+        x: [
+          'Empaque: sacos, lonas y mallas. Consumo constante y margen estable. Es lo primero que se acaba.',
+          'Cuerda y amarre: lazo, hilo de polipropileno, alambre. Barato por unidad, altísima rotación.',
+          'Herramienta de mano: machetes, palas, azadones, limas. Se desgasta y se repone; marcas reconocidas rotan mejor.',
+          'Riego y conducción: manguera, acoples, aspersores. Depende del clima, pero nunca se detiene del todo.',
+        ],
+      },
+      { t: 'h2', x: 'Lo estacional se compra distinto' },
+      {
+        t: 'p',
+        x: 'Las motobombas, las fumigadoras y los equipos se venden en picos: cuando empieza la lluvia, cuando se prepara el terreno, cuando hay plata de la cosecha. Comprar esos equipos por anticipado es financiar bodega durante meses.',
+      },
+      {
+        t: 'p',
+        x: 'Para esas líneas la estrategia es tener una unidad de exhibición y un proveedor que despache rápido. Cuando llega el pico, pides; no antes. El campesino que necesita una motobomba la necesita esta semana, no la compra con tres meses de anticipación.',
+      },
+      { t: 'h2', x: 'La marca pesa más de lo que uno cree' },
+      {
+        t: 'p',
+        x: 'En el campo la recomendación circula de vecino a vecino, y una herramienta que se partió se recuerda por años. Marcas con trayectoria —Bellota en herramienta, por ejemplo— se venden con menos explicación, aunque cuesten más.',
+      },
+      {
+        t: 'p',
+        x: 'Eso no significa descartar lo económico: significa tener las dos. Una línea reconocida para el que valora durabilidad y una alternativa más barata para el que compra por precio. Lo que no funciona es tener solo lo barato y que te devuelvan la herramienta partida.',
+      },
+      { t: 'h2', x: 'Errores que se repiten en almacenes agro' },
+      {
+        t: 'ul',
+        x: [
+          'Cargar agroquímicos sin rotación clara. Vencen, y un producto vencido es pérdida total más un problema de manejo.',
+          'Surtir equipos caros antes de la temporada. Inmoviliza el capital que necesitas para la base que sí rota.',
+          'No tener repuestos de lo que vendes. Vender una fumigadora y no tener el empaque de repuesto manda al cliente a otro lado.',
+          'Comprar empaque al menudeo. Es justo la línea donde el precio por volumen más cambia el margen.',
+        ],
+      },
+      {
+        t: 'cita',
+        x: 'En el agro, lo aburrido es lo que paga el arriendo. Lo emocionante es lo que lo pone en riesgo.',
+      },
+    ],
+  },
+
+  {
+    slug: 'cuanto-cuesta-traer-la-mercancia-fletes',
+    titulo: 'Fletes: cómo saber cuánto te cuesta de verdad traer la mercancía',
+    resumen:
+      'Por qué el producto más barato puede salir más caro, cómo calcular el costo real por unidad y cuándo conviene agrupar pedidos.',
+    fecha: '2026-11-13',
+    minutos: 6,
+    etiqueta: 'Operación',
+    cuerpo: [
+      {
+        t: 'p',
+        x: 'El flete es el costo que más se olvida y el que más cambia el resultado. Dos proveedores con el mismo precio de lista pueden dejarte márgenes muy distintos según desde dónde despachen, cómo cobren el envío y cada cuánto te toque pedir.',
+      },
+      { t: 'h2', x: 'El costo real es el precio puesto en tu bodega' },
+      {
+        t: 'p',
+        x: 'Deja de comparar precios de lista. Lo que importa es cuánto te cuesta cada unidad cuando ya está en tu estantería: precio del producto, más flete, dividido entre las unidades del pedido.',
+      },
+      {
+        t: 'p',
+        x: 'Un ejemplo: 100 unidades a $5.000 con flete de $120.000 te cuestan $6.200 cada una. Las mismas 100 unidades a $5.400 con flete incluido te cuestan $5.400. El proveedor "más caro" es un 13 % más barato.',
+      },
+      { t: 'h2', x: 'El peso volumétrico es la trampa clásica' },
+      {
+        t: 'p',
+        x: 'Las transportadoras cobran por peso o por volumen, lo que resulte mayor. Un bulto de espuma pesa poco y ocupa mucho: te cobran por el espacio. Un bulto de tornillos pesa mucho y ocupa poco: te cobran por el peso.',
+      },
+      {
+        t: 'p',
+        x: 'Por eso traer plástico, colchones o cajas vacías sale desproporcionadamente caro, y traer herramienta o ferretería sale relativamente barato. Si tu negocio mezcla líneas, conviene agruparlas en el mismo despacho: el producto pesado y el voluminoso se compensan.',
+      },
+      { t: 'h2', x: 'Cuándo conviene agrupar pedidos' },
+      {
+        t: 'ol',
+        x: [
+          'Si el flete es fijo por despacho, agrupar siempre conviene: el mismo costo repartido entre más unidades.',
+          'Si el flete es por peso, agrupar ayuda menos, pero suele haber tarifa escalonada por encima de cierto tonelaje.',
+          'Si tienes espacio de bodega y el producto no vence, pedir cada quince días en vez de cada semana baja el costo por unidad.',
+          'Si tu capital es ajustado, pedir seguido cuesta más en flete pero libera caja. Es una decisión financiera, no logística.',
+        ],
+      },
+      { t: 'h2', x: 'Qué preguntar antes de cerrar' },
+      {
+        t: 'ul',
+        x: [
+          '¿El precio incluye flete o va aparte? Y si va aparte, ¿cuánto para mi ciudad?',
+          '¿Hay monto mínimo para flete gratis? A veces subir un poco el pedido sale más barato que pagar el envío.',
+          '¿Quién responde si llega averiado? En línea blanca y vidrio esto define si el riesgo es tuyo o del proveedor.',
+          '¿Cuántos días de tránsito? El flete barato que tarda ocho días puede costarte ventas.',
+        ],
+      },
+      { t: 'h2', x: 'La cuenta que conviene tener a mano' },
+      {
+        t: 'p',
+        x: 'Antes de cada pedido, divide el flete entre las unidades que vas a traer y súmalo al costo. Si ese número sube mucho respecto al pedido anterior, es señal de que estás pidiendo poco o muy seguido.',
+      },
+      {
+        t: 'p',
+        x: 'Es una cuenta de treinta segundos que cambia decisiones: a veces conviene esperar dos días y agrupar, y a veces conviene cambiar de proveedor aunque el precio de lista sea peor.',
+      },
+      {
+        t: 'cita',
+        x: 'No compares precios de lista. Compara cuánto te cuesta cada unidad ya puesta en tu estantería.',
+      },
+    ],
+  },
+
+  {
     slug: 'como-comprar-al-por-mayor-en-colombia',
     titulo: 'Cómo comprar al por mayor en Colombia sin equivocarse en el primer pedido',
     resumen:

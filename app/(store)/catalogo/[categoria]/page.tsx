@@ -13,7 +13,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const category = (await getCategoryIndex()).bySlug.get(categoria)
   return category
     ? {
-        title: category.name,
+        // «Ferretería» compite contra el mundo entero; «Ferretería al por mayor»
+        // compite por la búsqueda que trae un comprador mayorista. El sufijo se
+        // omite si el nombre ya lo dice, para no repetirlo.
+        title: /mayor/i.test(category.name) ? category.name : `${category.name} al por mayor`,
         description: category.description ?? `${category.name} al por mayor en KOVEX Colombia.`,
         // Sin canónica, cada combinación de filtros y de página sería una URL
         // distinta con el mismo contenido.

@@ -5,6 +5,7 @@ import { Fragment, Suspense } from 'react'
 import { CatalogFilters } from './catalog-filters'
 import { MobileFilters } from './mobile-filters'
 import { SortSelect } from './sort-select'
+import { JsonLd } from '@/components/store/json-ld'
 import { ProductCard } from '@/components/store/product-card'
 import {
   Breadcrumb,
@@ -16,6 +17,7 @@ import {
 } from '@/components/ui/breadcrumb'
 import { Button } from '@/components/ui/button'
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
+import { getSiteUrl } from '@/lib/server/site-url'
 import { buildCatalogQuery, parseCatalogParams, type SearchParams } from '@/lib/catalog-params'
 import { plural } from '@/lib/format'
 import { getDepartments, listProducts } from '@/lib/server/catalog'
@@ -42,9 +44,10 @@ function pageWindow(page: number, pageCount: number): (number | 'gap')[] {
 
 export async function CatalogPage({ category, searchParams }: { category?: string; searchParams: SearchParams }) {
   const params = parseCatalogParams(searchParams)
-  const [result, departments] = await Promise.all([
+  const [result, departments, site] = await Promise.all([
     listProducts({ ...params, category, inStock: params.inStock, price: params.price }),
     getDepartments(),
+    getSiteUrl(),
   ])
   if (category && !result.category) notFound()
 
@@ -55,8 +58,73 @@ export async function CatalogPage({ category, searchParams }: { category?: strin
     : departments.map((d) => ({ slug: d.slug, name: d.name }))
   const pageHref = (page: number) => `${basePath}${buildCatalogQuery({ ...params, page })}`
 
+  const ruta = result.category ? [...result.category.path] : []
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 md:py-10">
+      {/* Sin esto, las páginas de categoría —las que deberían rankear por
+          «ferretería al por mayor»— llegaban al buscador sin decir qué son ni
+          qué contienen. ItemList además le da a los modelos de IA la lista de
+          productos con su precio, que es lo que citan al responder. */}
+      <JsonLd
+        data={{
+          '@context': 'https://schema.org',
+          '@type': 'CollectionPage',
+          '@id': `${site}${basePath}#pagina`,
+          url: `${site}${basePath}`,
+          name: result.category ? `${result.category.current.name} al por mayor` : 'Catálogo mayorista',
+          description:
+            result.category?.current.description ??
+            'Catálogo mayorista multicategoría de KOVEX Colombia: ferretería, agro, hogar, maquinaria, tecnología y electro.',
+          isPartOf: { '@id': `${site}/#sitio` },
+          about: { '@id': `${site}/#organizacion` },
+          inLanguage: 'es-CO',
+          breadcrumb: {
+            '@type': 'BreadcrumbList',
+            itemListElement: [
+              { '@type': 'ListItem', position: 1, name: 'Inicio', item: site },
+              { '@type': 'ListItem', position: 2, name: 'Catálogo', item: `${site}/catalogo` },
+              ...ruta.map((c, i) => ({
+                '@type': 'ListItem',
+                position: i + 3,
+                name: c.name,
+                item: `${site}/catalogo/${c.slug}`,
+              })),
+            ],
+          },
+          mainEntity: {
+            '@type': 'ItemList',
+            numberOfItems: result.total,
+            itemListElement: result.items.slice(0, 24).map((p, i) => ({
+              '@type': 'ListItem',
+              position: (result.page - 1) * result.pageSize + i + 1,
+              item: {
+                '@type': 'Product',
+                name: p.name,
+                url: `${site}/producto/${p.slug}`,
+                sku: p.sku,
+                ...(p.brand ? { brand: { '@type': 'Brand', name: p.brand } } : {}),
+                ...(p.image ? { image: `${site}${p.image}` } : {}),
+                // Solo cuando el precio está publicado: anunciar una oferta sin
+                // precio es lo que hace que Google marque la ficha como errónea.
+                ...(p.price != null
+                  ? {
+                      offers: {
+                        '@type': 'Offer',
+                        priceCurrency: 'COP',
+                        price: p.price,
+                        availability:
+                          p.available == null || p.available > 0
+                            ? 'https://schema.org/InStock'
+                            : 'https://schema.org/OutOfStock',
+                      },
+                    }
+                  : {}),
+              },
+            })),
+          },
+        }}
+      />
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>

@@ -24,7 +24,8 @@
     "catalog:ocultar-bajas": "tsx --env-file-if-exists=.env.local --conditions=react-server scripts/hide-discontinued.ts",
     "catalog:ocultar-sin-foto": "tsx --env-file-if-exists=.env.local --conditions=react-server scripts/hide-photoless.ts",
     "catalog:listas": "tsx --env-file-if-exists=.env.local --conditions=react-server scripts/price-lists.ts",
-    "catalog:simular-escala": "tsx --env-file-if-exists=.env.local --conditions=react-server scripts/simulate-tiers.ts"
+    "catalog:simular-escala": "tsx --env-file-if-exists=.env.local --conditions=react-server scripts/simulate-tiers.ts",
+    "seo:descripciones": "tsx --env-file-if-exists=.env.local --conditions=react-server scripts/seo-descriptions.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",
